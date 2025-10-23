@@ -1,310 +1,216 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import { Search } from "lucide-react";
+import React, { useState } from "react";
+import Image from "next/image";
+import { ChevronDown, Search, Download } from "lucide-react";
+import Pagination from "@/components/Pagination/Pagination";
 
-interface StipendRecord {
-    id: number;
-    selected: boolean;
-    name: string;
-    projectTask: string;
-    eligibilityStatus: 'Eligible' | 'Not Eligible';
-    consistency: number;
-    timeliness: number;
-    attendance: number;
-    taskCompletion: number;
-    availability: 'Active' | 'Inactive';
-    stipendAmount: number;
-    period: 'Day' | 'Week' | 'Month' | 'Year';
-}
-
-const StipendManagement: React.FC = () => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [timeFrame, setTimeFrame] = useState<'All' | 'Day' | 'Week' | 'Month' | 'Year'>('All');
-    const [eligibilityFilter, setEligibilityFilter] = useState<'All' | 'Eligible' | 'Not Eligible'>('All');
-
-    const [records, setRecords] = useState<StipendRecord[]>([
-        {
-            id: 1,
-            selected: false,
-            name: 'Ethan Harper',
-            projectTask: 'Project Alpha',
-            eligibilityStatus: 'Eligible',
-            consistency: 90,
-            timeliness: 95,
-            attendance: 85,
-            taskCompletion: 95,
-            availability: 'Active',
-            stipendAmount: 3500,
-            period: 'Month'
-        },
-        {
-            id: 2,
-            selected: false,
-            name: 'Olivia Bennett',
-            projectTask: 'Task Beta',
-            eligibilityStatus: 'Not Eligible',
-            consistency: 75,
-            timeliness: 80,
-            attendance: 70,
-            taskCompletion: 85,
-            availability: 'Inactive',
-            stipendAmount: 300,
-            period: 'Week'
-        },
-        {
-            id: 3,
-            selected: false,
-            name: 'Liam Carter',
-            projectTask: 'Project Gamma',
-            eligibilityStatus: 'Eligible',
-            consistency: 86,
-            timeliness: 92,
-            attendance: 80,
-            taskCompletion: 90,
-            availability: 'Active',
-            stipendAmount: 3500,
-            period: 'Month'
-        },
-        {
-            id: 4,
-            selected: false,
-            name: 'Sophia Davis',
-            projectTask: 'Task Delta',
-            eligibilityStatus: 'Eligible',
-            consistency: 95,
-            timeliness: 99,
-            attendance: 90,
-            taskCompletion: 95,
-            availability: 'Active',
-            stipendAmount: 3000,
-            period: 'Month'
-        },
-        {
-            id: 5,
-            selected: false,
-            name: 'Noah Evans',
-            projectTask: 'Project Epsilon',
-            eligibilityStatus: 'Not Eligible',
-            consistency: 65,
-            timeliness: 70,
-            attendance: 60,
-            taskCompletion: 75,
-            availability: 'Inactive',
-            stipendAmount: 250,
-            period: 'Week'
-        }
-    ]);
-
-    const toggleSelect = (id: number) => {
-        setRecords(records.map(record =>
-            record.id === id ? { ...record, selected: !record.selected } : record
-        ));
-    };
-
-    const toggleSelectAll = () => {
-        const allSelected = records.every(record => record.selected);
-        setRecords(records.map(record => ({ ...record, selected: !allSelected })));
-    };
-
-    const filteredRecords = records.filter(record => {
-        const matchesSearch = record.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesTimeFrame = timeFrame === 'All' || record.period === timeFrame;
-        const matchesEligibility = eligibilityFilter === 'All' || record.eligibilityStatus === eligibilityFilter;
-
-        return matchesSearch && matchesTimeFrame && matchesEligibility;
-    });
-
-    return (
-        <div className="min-h-screen bg-gray-50 p-6 mt-4">
-            <div className="max-w-7xl mx-auto">
-                <h1 className="text-2xl font-bold text-gray-800 mb-6">Stipend Management</h1>
-                <p className="text-[#F97316] mb-8">Manage and oversee stipend records for testers and interns.</p>
-
-                {/* Filters */}
-                <div className="bg-white rounded-lg shadow p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Search */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search by Tester Name
-                            </label>
-
-                            <div className="relative w-full">
-                                <Search
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#F97316]"
-                                    size={18}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Search testers..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                        {/* Time Frame Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Time Frame
-                            </label>
-                            <div className="flex space-x-2">
-                                {(['All', 'Day', 'Week', 'Month', 'Year'] as const).map((frame) => (
-                                    <button
-                                        key={frame}
-                                        onClick={() => setTimeFrame(frame)}
-                                        className={`px-3 py-1 rounded-md text-sm ${timeFrame === frame
-                                            ? 'bg-[#F97316] text-white'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                            }`}
-                                    >
-                                        {frame}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Eligibility Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Eligibility Status
-                            </label>
-                            <select
-                                value={eligibilityFilter}
-                                onChange={(e) => setEligibilityFilter(e.target.value as 'All' | 'Eligible' | 'Not Eligible')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="All">All Status</option>
-                                <option value="Eligible">Eligible</option>
-                                <option value="Not Eligible">Not Eligible</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <input
-                                            type="checkbox"
-                                            checked={records.length > 0 && records.every(record => record.selected)}
-                                            onChange={toggleSelectAll}
-                                            className="rounded border-gray-300 text-[#F97316]"
-                                        />
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Tester/Intern Name
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Project/Task Linked
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Eligibility Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Consistency
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Timeliness
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Attendance
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Task Completion
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Availability
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Stipend Amount
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Period
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredRecords.map((record) => (
-                                    <tr key={record.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <input
-                                                type="checkbox"
-                                                checked={record.selected}
-                                                onChange={() => toggleSelect(record.id)}
-                                                className="rounded border-gray-300 text-[F97316]"
-                                            />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {record.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.projectTask}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${record.eligibilityStatus === 'Eligible'
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                {record.eligibilityStatus}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.consistency}%
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.timeliness}%
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.attendance}%
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.taskCompletion}%
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${record.availability === 'Active'
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {record.availability}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            ¥{record.stipendAmount.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {record.period}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                <button className="text-[#F97316">Edit</button>
-                                                <button className="text-green-600 hover:text-green-900">View</button>
-                                                <button className="text-red-600 hover:text-red-900">Delete</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {filteredRecords.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                        No records found matching your criteria.
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+type Stipend = {
+  id: number;
+  testerName: string;
+  projectLinked: string;
+  eligibilityStatus: "Eligible" | "Not Eligible";
+  consistency: number;
+  timeliness: number;
+  attendance: number;
+  taskCompletion: number;
+  availability: "Active" | "Inactive";
+  stipendAmount: number;
+  period: string;
 };
 
-export default StipendManagement;
+const mockData: Stipend[] = Array.from({ length: 45 }).map((_, idx) => ({
+  id: idx + 1,
+  testerName: "Ethan Harper",
+  projectLinked: "Project Alpha",
+  eligibilityStatus: idx % 5 === 0 ? "Not Eligible" : "Eligible",
+  consistency: 90,
+  timeliness: idx % 4 === 0 ? 65 : 95,
+  attendance: 85,
+  taskCompletion: 98,
+  availability: "Active",
+  stipendAmount: 3500,
+  period: "Month",
+}));
+
+export default function StipendManagement() {
+  const [data] = useState<Stipend[]>(mockData);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const filteredData = data.filter((item) =>
+    item.testerName.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+
+  return (
+    <div className="p-2 mt-14 max-w-7xl -ml-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+        <div>
+          <h1 className="text-lg font-semibold text-gray-800">
+            Stipend Management —
+            <span className="text-orange-500 font-normal text-lg">
+              {" "}
+              Manage and oversee stipend records for testers and interns.
+            </span>
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search Testers Name"
+              className="border border-gray-300 rounded-2xl pl-10 pr-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        {/* Filter Section */}
+        <div className="flex items-center gap-3 border border-gray-200 p-2 rounded-lg overflow-hidden text-xs font-medium">
+          <button className="flex items-center px-3 py-1 border-r border-gray-200 text-gray-600">
+            <Image
+              src="/icons/filter-list.png"
+              alt="Filter"
+              width={20}
+              height={20}
+              className="object-cover"
+            />
+          </button>
+
+          <button className="px-4 py-2 border-r border-gray-200 text-gray-700">
+            Filter By
+          </button>
+
+          <button className="flex items-center px-4 py-2 border-r border-gray-200 text-gray-700">
+            <span>Date</span>
+            <ChevronDown size={18} className="ml-2 text-gray-600" />
+          </button>
+
+          <button className="flex items-center px-4 py-2 gap-2 text-orange-500 hover:text-orange-600">
+            <Image
+              src="/icons/ic-replay.png"
+              alt="Reset"
+              width={20}
+              height={20}
+              className="object-cover"
+            />
+            Reset Filter
+          </button>
+        </div>
+
+        {/* Export Button */}
+        <div>
+          <button className="flex items-center gap-2 bg-orange-500 text-white px-6 py-2 rounded-2xl text-sm hover:bg-orange-600">
+            <Download size={18} />
+            Export Data
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 text-sm">
+          <thead className="bg-gray-50 text-gray-600 font-semibold">
+            <tr>
+              <th className="p-3 text-left">
+                <input type="checkbox" />
+              </th>
+              <th className="p-3 text-left">Tester/Intern Name</th>
+              <th className="p-3 text-left">Project Linked</th>
+              <th className="p-3 text-left">Eligibility Status</th>
+              <th className="p-3 text-center">Consistency of Performance</th>
+              <th className="p-3 text-center">Timeliness</th>
+              <th className="p-3 text-center">Attendance %</th>
+              <th className="p-3 text-center">Task Completion %</th>
+              <th className="p-3 text-center">Availability</th>
+              <th className="p-3 text-center">Stipend Amount</th>
+              <th className="p-3 text-center">Period</th>
+              <th className="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {paginatedData.map((item) => (
+              <tr
+                key={item.id}
+                className="border-t border-gray-200 hover:bg-gray-50 transition text-gray-700"
+              >
+                <td className="p-3">
+                  <input type="checkbox" />
+                </td>
+                <td className="p-3">{item.testerName}</td>
+                <td className="p-3 text-orange-500">{item.projectLinked}</td>
+                <td className="p-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      item.eligibilityStatus === "Eligible"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {item.eligibilityStatus}
+                  </span>
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  {item.consistency}%
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  {item.timeliness}%
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  {item.attendance}%
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  {item.taskCompletion}%
+                </td>
+                <td
+                  className={`p-3 text-center font-medium ${
+                    item.availability === "Active"
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {item.availability}
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  ₦{item.stipendAmount}
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  {item.period}
+                </td>
+                <td className="p-3 text-center text-orange-500">
+                  <button className="hover:underline mr-2">View</button>|
+                  <button className="hover:underline ml-2">Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-end items-center mt-6 text-sm text-gray-600">
+        <Pagination
+          totalPages={totalPages}
+          initialPage={currentPage}
+          initialPageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      </div>
+    </div>
+  );
+}

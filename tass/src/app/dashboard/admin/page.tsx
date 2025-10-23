@@ -59,7 +59,7 @@ const stats = [
 const projects = [
     {
         name: 'Mobile Banking Revamp',
-        testers: [{ name: 'Kristin Watson', email: 'example@mail.com', image: 'images/image1.png' }],
+        testers: [{ name: 'Kristin Watson', email: 'example@mail.com', image: '/images/image.png' }],
         date: 'sep-12-25',
         status: 'Ongoing',
         progress: 88,
