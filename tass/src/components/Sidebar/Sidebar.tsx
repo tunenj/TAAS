@@ -23,15 +23,15 @@ const Sidebar: React.FC = () => {
         },
         // { name: "Testers", path: "/dashboard/testers", icon: "/icons/Frame (3).png" },
         {
-            name: "Tasks", path: "/dashboard/tasks", icon: "/icons/Frame (4).png",
-            children: [
-                { name: "Assigned Task", path: "/dashboard/tasks/assignedTask" },
-            ],
+            name: "Tasks", path: "/dashboard/createTask", icon: "/icons/Frame (4).png",
+            // children: [
+            //     { name: "Assigned Task", path: "/dashboard/tasks/assignedTask" },
+            // ],
         },
         { name: "Stipend", path: "/dashboard/stipend", icon: "/icons/Frame (5).png" },
         { name: "Report", path: "/", icon: "/icons/Frame (6).png" },
         { name: "Monitoring", path: "/", icon: "/icons/Fram.png" },
-        { name: "Settings", path: "/", icon: "/icons/Frame (7).png" },
+        { name: "Settings", path: "/dashboard/settings", icon: "/icons/Frame (7).png" },
     ];
 
     const anyActive = navItems.some(item => path === item.path);
