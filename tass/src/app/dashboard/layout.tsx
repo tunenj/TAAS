@@ -1,4 +1,4 @@
-import Sidebar from "@/components/Sidebar/Sidebar";
+import Sidebar from "@/components/AdminSidebar/Sidebar";
 import Topbar from "@/components/Topbar/Topbar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

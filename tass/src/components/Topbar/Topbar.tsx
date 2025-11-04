@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, X } from "lucide-react";
+import { Bell, X, Search, Mail, User } from "lucide-react";
 import { useState } from "react";
 
 type NavItem = {
@@ -12,15 +12,14 @@ type NavItem = {
 };
 
 const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: "/icons/Frame.png" },
-    { name: "Attendance", path: "/#", icon: "/icons/Frame (1).png" },
-    { name: "Projects", path: "/#", icon: "/icons/Frame (2).png" },
-    { name: "Testers", path: "/transactions", icon: "/icons/Frame (3).png" },
-    { name: "Tasks", path: "/#", icon: "/icons/Frame (4).png" },
-    { name: "Stipend", path: "/", icon: "/icons/Frame (5).png" },
-    { name: "Report", path: "/", icon: "/icons/Frame (6).png" },
-    { name: "Monitoring", path: "/", icon: "/icons/Fram.png" },
-    { name: "Settings", path: "/", icon: "/icons/Frame (7).png" },
+    { name: "Home", path: "/dashboard/admin", icon: "/icons/home.png" },
+    { name: "Attendance", path: "/dashboard/admin/attendance", icon: "/icons/attendance.png" },
+    { name: "Projects", path: "/dashboard/admin/project", icon: "/icons/project.png" },
+    { name: "Task", path: "/dashboard/admin/createTask", icon: "/icons/task.png" },
+    { name: "Task Validation", path: "/dashboard/admin/taskValidation", icon: "/icons/validate.png" },
+    { name: "Stipend", path: "/dashboard/admin/stipend", icon: "/icons/stipend.png" },
+    { name: "Report", path: "/dashboard/admin/report", icon: "/icons/report.png" },
+    { name: "Settings", path: "/dashboard/admin/settings", icon: "/icons/setting.png" },
 ];
 
 const Topbar = () => {
@@ -29,53 +28,54 @@ const Topbar = () => {
     return (
         <>
             <header className="fixed top-0 left-0 w-full bg-white shadow py-2 flex items-center justify-between z-50 px-4 md:px-9">
-                {/* Left Section (Hamburger + Logo) */}
+                {/* Left Section (Logo) */}
                 <div className="flex items-center gap-4 flex-1">
-                    {/* Hamburger (mobile only) */}
-                    <button
-                        onClick={() => setIsOpen((v) => !v)}
-                        className="md:hidden p-2 rounded-md text-2xl hover:bg-gray-100"
-                        aria-label="Menu"
-                    >
-                        ☰
-                    </button>
-
                     {/* Logo (desktop) */}
-                    <Link
-                        href="/"
-                        className="hidden md:flex items-center justify-center mb-1 lg:mb-0"
-                    >
+                    <Link href="/" className="hidden md:flex items-center justify-center mb-1 lg:mb-0">
                         <Image
                             src="/images/Avetium.png"
-                            alt="squareme"
-                            width={128.99}
-                            height={25.92}
+                            alt="Avetium"
+                            width={120}
+                            height={32}
                             className="object-contain"
                         />
                     </Link>
                 </div>
 
-                {/* Mobile: centered logo */}
-                <Link
-                    href="/"
-                    className="absolute left-1/2 -translate-x-1/2 md:hidden flex items-center"
-                >
-                    <Image
-                        src="/images/Avetium.png"
-                        alt="Avetium"
-                        width={120}
-                        height={32}
-                        className="object-contain"
+                {/* Search Bar - to the left */}
+                <div className="absolute max-w-xs w-full ml-52">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        <Search width={20} height={20} />
+                    </span>
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        className="w-full bg-gray-100 p-2 rounded-full text-sm border border-gray-300 focus:outline-none pl-10"
                     />
-                </Link>
+                </div>
 
                 {/* Right Section: Notifications */}
-                <div className="flex items-center gap-2 md:gap-6">
-                    <button
-                        className="flex items-center hover:bg-gray-100 rounded transition p-1.5"
-                        aria-label="Notifications"
-                    >
+                <div className="flex items-center gap-2 md:gap-2">
+                    <button className="flex items-center hover:bg-gray-100 rounded transition p-1.5" aria-label="Mail">
+                         <Image
+                            src="/icons/inbox.png"
+                            alt="Avetium"
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                        />
+                    </button>
+                    <button className="flex items-center hover:bg-gray-100 rounded transition p-1.5" aria-label="Notifications">
                         <Bell className="w-6 h-6 text-black" />
+                    </button>
+                    <button className="flex items-center hover:bg-gray-100 rounded transition p-1.5" aria-label="Profile">
+                        <Image
+                            src="/icons/profile.png"
+                            alt="Avetium"
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                        />
                     </button>
                 </div>
             </header>
@@ -88,11 +88,7 @@ const Topbar = () => {
             >
                 {/* Drawer Header */}
                 <div className="h-14 px-4 flex items-center justify-between border-b">
-                    <Link
-                        href="/"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2"
-                    >
+                    <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-2">
                         <Image
                             src="/images/Avetium.png"
                             alt="Avetium"
