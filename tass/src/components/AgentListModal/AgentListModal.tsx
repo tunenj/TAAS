@@ -46,7 +46,7 @@ const AgentAssignModal = ({ onClose }: { onClose: () => void }) => {
   );
 
   return (
-    <div className="absolute  left-100 bg-white bg-opacity-40 flex shadow-md justify-center items-center z-50">
+    <div className="absolute left-100 bg-white bg-opacity-40 flex shadow-md justify-center items-center z-50 mt-10">
       <div className="bg-white rounded-xl w-[430px] max-h-[500px] shadow-lg flex flex-col p-4 relative">
         
         {/*Close Button */}

@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import Image from 'next/image'
+import  DashboardLayout from "@/app/AdminLayout/DashboardLayout";
 
 const stats = [
     {
@@ -152,6 +153,7 @@ function getStatusColor(status: string) {
 }
 
 const Dashboard: React.FC = () => (
+    <DashboardLayout>
     <main className="bg-gray-50 mt-10 min-h-screen -ml-8">
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-xl font-semibold text-gray-800">
@@ -358,6 +360,8 @@ const Dashboard: React.FC = () => (
             </div>
         </div>
     </main>
+    </DashboardLayout>
+
 )
 
 export default Dashboard
