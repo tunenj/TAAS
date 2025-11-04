@@ -1,5 +1,5 @@
 "use client";
-
+// top bar
 import Image from "next/image";
 import Link from "next/link";
 import { Bell, X, Search, Mail, User } from "lucide-react";
