@@ -23,13 +23,6 @@ export default function Home() {
         <Benefit />
         <CallToAction />
         <Footer />
-
-        {/*<ChooseUs />
-        <BackupRestore />
-        <Integrations />
-        <PricingTable />
-        <FrequentQuestions />
-        <Footer /> */}
       </main>
     </>
   );
