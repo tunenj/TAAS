@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import DashboardLayout from '@/app/AgentLayout/DashboardLayout';
 import Image from 'next/image';
 import { Search, Filter, Flag, Folder } from "lucide-react";
 
@@ -49,7 +48,6 @@ const DueItem = ({ title, due, icon }: { title: string; due: string; icon: strin
 
 const DashboardPage = () => {
   return (
-    <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6 text-gray-800 mt-4 md:-ml-8">
 
         {/* Header */}
@@ -173,7 +171,6 @@ const DashboardPage = () => {
           </ul>
         </div>
       </div>
-    </DashboardLayout>
   );
 };
 

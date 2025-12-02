@@ -1,6 +1,5 @@
 import { ChevronDown } from 'lucide-react'
 import Image from 'next/image'
-import  DashboardLayout from "@/app/AdminLayout/DashboardLayout";
 
 const stats = [
     {
@@ -81,7 +80,7 @@ const projects = [
     },
 ]
 
-// ✅ Added progress field here
+// Added progress field here
 const testCases = [
     {
         name: 'Checkout Payment Validation',
@@ -153,8 +152,7 @@ function getStatusColor(status: string) {
 }
 
 const Dashboard: React.FC = () => (
-    <DashboardLayout>
-    <main className="bg-gray-50 mt-10 min-h-screen -ml-8">
+    <main className="bg-gray-50 mt-10 min-h-screen -ml-5">
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-xl font-semibold text-gray-800">
                 Hey Triston -
@@ -186,7 +184,7 @@ const Dashboard: React.FC = () => (
         <div className="flex flex-row gap-4 mb-10">
             {/* ===== Ongoing Projects Table ===== */}
             <div>
-                <div className="bg-white rounded shadow-2xl p-4 sm:p-6">
+                <div className="bg-white rounded shadow-2xl p-4 sm:p-6 md:max-w-[650px]">
                     <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <h2 className="text-lg font-bold text-gray-700">On going Projects</h2>
                         <div className="flex flex-col sm:flex-row gap-2">
@@ -254,7 +252,7 @@ const Dashboard: React.FC = () => (
                 </div>
 
                 {/* Simple bar chart section */}
-                <div className="bg-white p-6 rounded-xl shadow mt-4">
+                <div className="bg-white p-6 rounded-xl shadow mt-4 md:max-w-[650px]">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold text-gray-800">Ongoing Projects &amp; Test Cases</h2>
                         <div className="flex gap-2">
@@ -275,15 +273,15 @@ const Dashboard: React.FC = () => (
                     </div>
                 </div>
                 {/* Grouped bar chart mockup */}
-                <div className="bg-white p-6 rounded-xl shadow mt-4">
+                <div className="bg-white p-6 rounded-xl shadow mt-4 md:max-w-[650px]">
                     {/* Grouped bar chart mockup */}
                     <div className="rounded-lg border border-gray-100 bg-white p-4">
                         <div className="flex items-end justify-between h-44 w-full space-x-4">
                             {/* Static data: Each week, blue = project, orange = test case */}
                             {[[50, 80], [60, 95], [70, 110], [80, 120], [70, 100], [90, 120]].map(([project, test], i) => (
                                 <div key={i} className="flex items-end space-x-2">
-                                    <div style={{ height: `${project}px` }} className="w-10 bg-blue-600 rounded-t"></div>
-                                    <div style={{ height: `${test}px` }} className="w-10 bg-orange-500 rounded-t"></div>
+                                    <div style={{ height: `${project}px` }} className="w-8 bg-blue-600 rounded-t"></div>
+                                    <div style={{ height: `${test}px` }} className="w-8 bg-orange-500 rounded-t"></div>
                                 </div>
                             ))}
                         </div>
@@ -301,8 +299,8 @@ const Dashboard: React.FC = () => (
                     </button>
                 </div>
 
-                <div className="flex gap-3 mb-5">
-                    <Image src="/icons/filter-list.png" alt="Card icon" width={24} height={24} className="w-6 h-6" />
+                <div className="flex gap-2 mb-5">
+                    <Image src="/icons/filter-list.png" alt="Card icon" width={24} height={24} className="w-4 h-4" />
                     <button className="flex items-center gap-2 px-3 py-1 border border-gray-300 rounded-2xl text-sm bg-white">
                         Filter: Testers
                         <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -360,7 +358,6 @@ const Dashboard: React.FC = () => (
             </div>
         </div>
     </main>
-    </DashboardLayout>
 
 )
 
