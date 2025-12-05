@@ -15,12 +15,6 @@ const projects = Array.from({ length: 33 }).map((_, idx) => ({
     "Comprehensive testing of modules for functionality and efficiency...",
   startDate: "2025-07-30",
   deadline: "2025-08-30",
-  assignedAgents:
-    idx % 2
-      ? "Ethan Harper, Liam Carter"
-      : idx === 2
-      ? "Noah Evans"
-      : "Ethan Harper, Ava Foster",
 }));
 
 export default function ProjectsTable() {
@@ -93,12 +87,12 @@ export default function ProjectsTable() {
               <th className="px-3 py-2 text-[#374151] text-left font-semibold">
                 Deadline
               </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
+              {/* <th className="px-3 py-2 text-[#374151] text-left font-semibold">
                 Assigned Agents
               </th>
               <th className="px-3 py-2 text-[#374151] text-left font-semibold">
                 Test Cases
-              </th>
+              </th> */}
               <th className="px-3 py-2 text-[#374151] text-left font-semibold">Action</th>
             </tr>
           </thead>
@@ -120,24 +114,7 @@ export default function ProjectsTable() {
                 </td>
                 <td className="px-2 py-2 text-[#374151]">{proj.startDate}</td>
                 <td className="px-2 py-2 text-[#374151]">{proj.deadline}</td>
-                <td className="px-2 py-2 text-[#4D7399]">{proj.assignedAgents}</td>
-                <td className="px-2 py-2">
-                  <Image
-                    src="/icons/csv.png"
-                    alt="CSV"
-                    width={28}
-                    height={28}
-                    className="object-cover"
-                  />
-                </td>
                 <td className="px-3 py-2 space-x-1">
-                  <Link
-                    href={`/dashboard/project/${projectId}`}
-                    className="text-orange-500 hover:underline text-xs"
-                  >
-                    View
-                  </Link>
-                  <span className="text-gray-400">|</span>
                   <Link
                     href={`/dashboard/project/${projectId}?edit=true`}
                     className="text-green-700 hover:underline text-xs"

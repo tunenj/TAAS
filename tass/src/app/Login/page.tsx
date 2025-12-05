@@ -172,7 +172,7 @@ const SignInForm: React.FC = () => {
           Welcome <b>back</b>
         </h2>
         <p className="text-gray-600 mb-8 text-sm">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+         We're glad to see you again. Let's get you started.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

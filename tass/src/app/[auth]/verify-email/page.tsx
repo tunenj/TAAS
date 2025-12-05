@@ -53,33 +53,14 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: "50px auto",
-        padding: "20px",
-        textAlign: "center",
-        fontFamily: "Arial, sans-serif",
-        border: "1px solid #eee",
-        borderRadius: 8,
-      }}
-    >
-      <h1>Email Verification</h1>
-      <p style={{ marginTop: 20, fontSize: 16 }}>{status}</p>
+    <div className="max-w-md mx-auto mt-12 p-6 text-center border border-gray-200 rounded-lg shadow-sm bg-white">
+      <h1 className="text-2xl font-bold text-gray-800">Email Verification</h1>
+      <p className="mt-5 text-gray-700 text-base">{status}</p>
 
       {verified && (
         <button
           onClick={handleLogin}
-          style={{
-            marginTop: 20,
-            padding: "10px 20px",
-            backgroundColor: "#E95D28",
-            color: "white",
-            border: "none",
-            borderRadius: 5,
-            cursor: "pointer",
-            fontSize: 16,
-          }}
+          className="mt-6 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors duration-200"
         >
           Go to Login
         </button>

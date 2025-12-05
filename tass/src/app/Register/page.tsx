@@ -6,15 +6,13 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import PasswordRequirements from '@/components/PasswordRequirements';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth';
 
 const SignupForm: React.FC = () => {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-
-  const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    'https://atasstaging.avetiumconsult.com/api';
+  const { BASE_URL } = useAuth(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
