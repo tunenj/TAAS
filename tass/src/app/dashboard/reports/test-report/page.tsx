@@ -133,7 +133,7 @@ export default function TestReport() {
 
       {/* Search + Filters */}
       <div className="mb-4 relative max-w-[538px]">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black w-4 h-4" />
         <input
           value={query}
           onChange={(e) => {
@@ -249,11 +249,10 @@ export default function TestReport() {
 
                   <td className="p-3 text-center">
                     <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                        row.failPass === "Pass"
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${row.failPass === "Pass"
                           ? "bg-green-100 text-green-700 border-green-200"
                           : "bg-red-100 text-red-700 border-red-200"
-                      }`}
+                        }`}
                     >
                       {row.failPass}
                     </span>
@@ -261,11 +260,10 @@ export default function TestReport() {
 
                   <td className="p-3 text-center">
                     <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                        row.access === "Yes"
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${row.access === "Yes"
                           ? "bg-green-100 text-green-700 border-green-200"
                           : "bg-red-100 text-red-700 border-red-200"
-                      }`}
+                        }`}
                     >
                       {row.access}
                     </span>

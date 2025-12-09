@@ -67,7 +67,7 @@ export default function StipendManagement() {
 
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-2.5 text-black" size={18} />
             <input
               type="text"
               placeholder="Search Testers Name"
@@ -194,7 +194,7 @@ export default function StipendManagement() {
                 </td>
                 <td className="p-3 text-center text-orange-500">
                   <button
-                    onClick={() => router.push('/dashboard/admin/stipend/stipendCard')}
+                    onClick={() => router.push('/dashboard/adminStipend/stipendCard')}
                     className="text-orange-500 mr-2"
                   >
                     View

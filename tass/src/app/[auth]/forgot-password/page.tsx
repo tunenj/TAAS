@@ -38,7 +38,7 @@ const ForgotPasswordForm: React.FC = () => {
               placeholder="Ormaniventure@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-gray-400 focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-black focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
               required
             />
           </div>

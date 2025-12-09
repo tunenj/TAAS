@@ -33,7 +33,7 @@ export default function ProjectsTable() {
         <div className="bg-white rounded-lg border border-gray-300 shadow-sm">
             <div className="flex justify-between items-center px-4 py-3">
                 <div className="relative w-96 border-gray-300">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-black w-4 h-4" />
                     <input
                         type="text"
                         placeholder="Search by project name, tester, or status"
@@ -46,7 +46,7 @@ export default function ProjectsTable() {
             </div>
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b text-gray-400">
+                    <tr className="border-b text-black">
                         <th className="py-2 px-3 text-left">Project Name</th>
                         <th className="py-2 px-3 text-left">Assigned Testers</th>
                         <th className="py-2 px-3 text-left">Status</th>
@@ -79,7 +79,7 @@ export default function ProjectsTable() {
                                     <span className="text-xs font-semibold">{p.progress}%</span>
                                 </div>
                             </td>
-                            <td className="py-3 px-3 flex gap-2 text-gray-400 items-center">
+                            <td className="py-3 px-3 flex gap-2 text-black items-center">
                                 <button title="View">👁️</button>
                                 <button title="Edit">✏️</button>
                                 <button title="Delete">🗑️</button>

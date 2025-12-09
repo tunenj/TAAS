@@ -120,7 +120,7 @@ const AttendanceDashboard: React.FC = () => {
                                 />
                                 <div>
                                     <p className="font-medium text-gray-800">{agent.name}</p>
-                                    <p className="text-xs text-gray-400">{agent.email}</p>
+                                    <p className="text-xs text-black">{agent.email}</p>
                                 </div>
                             </li>
                         ))}
@@ -134,7 +134,7 @@ const AttendanceDashboard: React.FC = () => {
                     <div className="grid grid-cols-3 gap-3 mb-6">
                         {/* Total Days Worked */}
                         <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
-                            <p className="text-gray-400 text-sm">Total days worked</p>
+                            <p className="text-black text-sm">Total days worked</p>
                             <div className="flex justify-between items-center mt-2">
                                 <p className="font-semibold text-lg">{totalDaysWorked}</p>
                                 <img
@@ -147,7 +147,7 @@ const AttendanceDashboard: React.FC = () => {
 
                         {/* Total Present Days */}
                         <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
-                            <p className="text-gray-400 text-sm">Total present days</p>
+                            <p className="text-black text-sm">Total present days</p>
                             <div className="flex justify-between items-center mt-2">
                                 <p className="font-semibold text-lg">{totalPresent}</p>
                                 <img
@@ -160,7 +160,7 @@ const AttendanceDashboard: React.FC = () => {
 
                         {/* Total Absent Days */}
                         <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
-                            <p className="text-gray-400 text-sm">Total absent days</p>
+                            <p className="text-black text-sm">Total absent days</p>
                             <div className="flex justify-between items-center mt-2">
                                 <p className="font-semibold text-lg">{totalAbsent}</p>
                                 <img

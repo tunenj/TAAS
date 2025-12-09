@@ -224,7 +224,7 @@ const SignupForm: React.FC = () => {
                     placeholder="First name"
                     value={formData.first_name}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border px-3 py-2 ${
+                    className={`mt-1 block w-full placeholder-gray-700 rounded-md border px-3 py-2 ${
                       errors.first_name ? 'border-red-500' : ''
                     }`}
                   />
@@ -242,7 +242,7 @@ const SignupForm: React.FC = () => {
                     placeholder="Last name"
                     value={formData.last_name}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border px-3 py-2 ${
+                    className={`mt-1 block w-full placeholder-gray-700 rounded-md border px-3 py-2 ${
                       errors.last_name ? 'border-red-500' : ''
                     }`}
                   />
@@ -262,7 +262,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Username"
                   value={formData.username}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.username ? 'border-red-500' : ''
                   }`}
                 />
@@ -282,7 +282,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.email ? 'border-red-500' : ''
                   }`}
                 />
@@ -301,7 +301,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Phone"
                   value={formData.phone_number}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.phone_number ? 'border-red-500' : ''
                   }`}
                 />
@@ -323,7 +323,7 @@ const SignupForm: React.FC = () => {
                   onChange={handleChange}
                   onFocus={() => setShowRequirements(true)}
                   onBlur={() => setShowRequirements(false)}
-                  className={`w-full border px-3 py-2 pr-10 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 pr-10 rounded-md ${
                     errors.password ? 'border-red-500' : ''
                   }`}
                 />
@@ -355,7 +355,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Confirm Password"
                   value={formData.password2}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 pr-10 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 pr-10 rounded-md ${
                     errors.password2 ? 'border-red-500' : ''
                   }`}
                 />
@@ -397,7 +397,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Organization Name"
                   value={formData.organization.name}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.org_name ? 'border-red-500' : ''
                   }`}
                 />
@@ -416,7 +416,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Job Title"
                   value={formData.organization.job_title}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.org_job_title ? 'border-red-500' : ''
                   }`}
                 />
@@ -435,7 +435,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Sector"
                   value={formData.organization.sector}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.org_sector ? 'border-red-500' : ''
                   }`}
                 />
@@ -454,7 +454,7 @@ const SignupForm: React.FC = () => {
                   placeholder="State"
                   value={formData.organization.state}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.org_state ? 'border-red-500' : ''
                   }`}
                 />
@@ -473,7 +473,7 @@ const SignupForm: React.FC = () => {
                   placeholder="Country"
                   value={formData.organization.country}
                   onChange={handleChange}
-                  className={`w-full border px-3 py-2 rounded-md ${
+                  className={`w-full border placeholder-gray-700 px-3 py-2 rounded-md ${
                     errors.org_country ? 'border-red-500' : ''
                   }`}
                 />

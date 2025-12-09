@@ -130,138 +130,138 @@ export default function MyTaskPage() {
 
 
     return (
-            <div className="p-6 bg-gray-50 min-h-screen text-gray-800 mt-5">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                    <h1 className="text-xl font-semibold">My Task</h1>
-                    <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm">
-                            <Save size={16} /> Save View
-                        </button>
-                        <button className="flex items-center gap-2 text-black px-4 py-2 rounded-lg text-sm">
-                            <Plus size={16} /> New Test Case
-                        </button>
-                    </div>
+        <div className="p-6 bg-gray-50 min-h-screen text-gray-800 mt-5">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+                <h1 className="text-xl font-semibold">My Task</h1>
+                <div className="flex items-center gap-4">
+                    <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm">
+                        <Save size={16} /> Save View
+                    </button>
+                    <button className="flex items-center gap-2 text-black px-4 py-2 rounded-lg text-sm">
+                        <Plus size={16} /> New Test Case
+                    </button>
                 </div>
-
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    {/* Search */}
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" strokeWidth={2} />
-                        <input
-                            type="text"
-                            placeholder="Search test cases"
-                            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 w-full"
-                        />
-                    </div>
-                    {/* Filters */}
-                    <div className="flex  items-center gap-3 text-gray-700 text-sm">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
-                            <Filter size={16} />
-                            <span>Status: All</span>
-                        </div>
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
-                            <Flag size={16} />
-                            <span>Priority</span>
-                        </div>
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
-                            <Folder size={16} />
-                            <span>Project</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500 transition">
-                        <ArrowUpDown size={16} />
-                        <span>Sort: Updated</span>
-                        <Download size={16} />
-                        <span>Export</span>
-                    </div>
-                </div>
-
-
-                {/* Tabs */}
-                < div className="flex gap-6 text-sm font-medium text-gray-600 mb-3 border-b border-gray-200 mt-3" >
-                    <button className="pb-2 bg-amber-600 px-4 py-2 rounded-md text-black">All</button>
-                    <button className="pb-2 hover:text-indigo-600">Assigned to Me</button>
-                    <button className="pb-2 hover:text-indigo-600">To Do</button>
-                    <button className="pb-2 hover:text-indigo-600">In Progress</button>
-                    <button className="pb-2 hover:text-indigo-600">Completed</button>
-                </div >
-
-                {/* Table */}
-                < div className="bg-white shadow-sm rounded-lg overflow-hidden" >
-                    <table className="w-full text-sm">
-                        <thead className="bg-gray-100 text-gray-600 font-semibold">
-                            <tr>
-                                <th className="p-3 text-left"></th>
-                                <th className="p-3 text-left">Test Case</th>
-                                <th className="p-3 text-left">Project</th>
-                                <th className="p-3 text-left">Status</th>
-                                <th className="p-3 text-left">Priority</th>
-                                <th className="p-3 text-left">Last Updated</th>
-                                <th className="p-3 text-left">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tasks.map((task) => (
-                                <tr key={task.id} className="border-b border-b-gray-200 hover:bg-gray-50">
-                                    <td className="p-3"><input type="checkbox" /></td>
-                                    <td className="p-3">{task.name}</td>
-                                    <td className="p-3">{task.project}</td>
-                                    <td className={`p-3 font-medium ${statusColor[task.status]}`}>{task.status}</td>
-                                    <td className="p-3">{task.priority}</td>
-                                    <td className="p-3">{task.updated}</td>
-                                    <td className="p-3 flex gap-3">
-                                        {task.status !== 'Completed' ? (
-                                            <>
-                                                <button
-                                                    onClick={() => handleExecute(task.id)}
-                                                    className="text-gray-600 font-semibold"
-                                                >
-                                                    Execute
-                                                </button>
-                                                <button
-                                                    onClick={() => router.push('/task-details')}
-                                                    className="text-gray-600 font-semibold"
-                                                >
-                                                    Details
-                                                </button>
-
-                                                <button
-                                                    onClick={() => setOpenSummaryFor(task.id)}
-                                                    className="text-gray-600 font-semibold"
-                                                >
-                                                    View
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="w-13"></div> {/* Empty space to maintain alignment */}
-                                                <button className="text-gray-600 font-semibold">Details</button>
-                                                <button
-                                                    onClick={() => setOpenSummaryFor(task.id)}
-                                                    className="text-gray-600 font-semibold"
-                                                >
-                                                    View
-                                                </button>
-
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div >
-
-                {/* Modal: show TestSummary when openSummaryFor is set */}
-                {
-                    openSummaryFor !== null && (
-                        <TestSummary
-                            data={SAMPLE_SUMMARY}
-                            onClose={() => setOpenSummaryFor(null)}
-                        />
-                    )
-                }
             </div>
+
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                {/* Search */}
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-black w-4 h-4" strokeWidth={2} />
+                    <input
+                        type="text"
+                        placeholder="Search test cases"
+                        className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 w-full"
+                    />
+                </div>
+                {/* Filters */}
+                <div className="flex  items-center gap-3 text-gray-700 text-sm">
+                    <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
+                        <Filter size={16} />
+                        <span>Status: All</span>
+                    </div>
+                    <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
+                        <Flag size={16} />
+                        <span>Priority</span>
+                    </div>
+                    <div className="flex items-center gap-1 cursor-pointer hover:text-orange-500 transition">
+                        <Folder size={16} />
+                        <span>Project</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 cursor-pointer hover:text-orange-500 transition">
+                    <ArrowUpDown size={16} />
+                    <span>Sort: Updated</span>
+                    <Download size={16} />
+                    <span>Export</span>
+                </div>
+            </div>
+
+
+            {/* Tabs */}
+            < div className="flex gap-6 text-sm font-medium text-gray-600 mb-3 border-b border-gray-200 mt-3" >
+                <button className="pb-2 bg-amber-600 px-4 py-2 rounded-md text-black">All</button>
+                <button className="pb-2 hover:text-indigo-600">Assigned to Me</button>
+                <button className="pb-2 hover:text-indigo-600">To Do</button>
+                <button className="pb-2 hover:text-indigo-600">In Progress</button>
+                <button className="pb-2 hover:text-indigo-600">Completed</button>
+            </div >
+
+            {/* Table */}
+            < div className="bg-white shadow-sm rounded-lg overflow-hidden" >
+                <table className="w-full text-sm">
+                    <thead className="bg-gray-100 text-gray-600 font-semibold">
+                        <tr>
+                            <th className="p-3 text-left"></th>
+                            <th className="p-3 text-left">Test Case</th>
+                            <th className="p-3 text-left">Project</th>
+                            <th className="p-3 text-left">Status</th>
+                            <th className="p-3 text-left">Priority</th>
+                            <th className="p-3 text-left">Last Updated</th>
+                            <th className="p-3 text-left">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {tasks.map((task) => (
+                            <tr key={task.id} className="border-b border-b-gray-200 hover:bg-gray-50">
+                                <td className="p-3"><input type="checkbox" /></td>
+                                <td className="p-3">{task.name}</td>
+                                <td className="p-3">{task.project}</td>
+                                <td className={`p-3 font-medium ${statusColor[task.status]}`}>{task.status}</td>
+                                <td className="p-3">{task.priority}</td>
+                                <td className="p-3">{task.updated}</td>
+                                <td className="p-3 flex gap-3">
+                                    {task.status !== 'Completed' ? (
+                                        <>
+                                            <button
+                                                onClick={() => handleExecute(task.id)}
+                                                className="text-gray-600 font-semibold"
+                                            >
+                                                Execute
+                                            </button>
+                                            <button
+                                                onClick={() => router.push('/task-details')}
+                                                className="text-gray-600 font-semibold"
+                                            >
+                                                Details
+                                            </button>
+
+                                            <button
+                                                onClick={() => setOpenSummaryFor(task.id)}
+                                                className="text-gray-600 font-semibold"
+                                            >
+                                                View
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-13"></div> {/* Empty space to maintain alignment */}
+                                            <button className="text-gray-600 font-semibold">Details</button>
+                                            <button
+                                                onClick={() => setOpenSummaryFor(task.id)}
+                                                className="text-gray-600 font-semibold"
+                                            >
+                                                View
+                                            </button>
+
+                                        </>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div >
+
+            {/* Modal: show TestSummary when openSummaryFor is set */}
+            {
+                openSummaryFor !== null && (
+                    <TestSummary
+                        data={SAMPLE_SUMMARY}
+                        onClose={() => setOpenSummaryFor(null)}
+                    />
+                )
+            }
+        </div>
     );
 }

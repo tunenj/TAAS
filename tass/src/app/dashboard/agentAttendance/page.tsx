@@ -159,7 +159,7 @@ export default function EmployeeDashboard() {
                                                         {item.status}
                                                     </div>
                                                     {item.hours && (
-                                                        <div className="text-xs text-gray-400 mt-1">{item.hours}</div>
+                                                        <div className="text-xs text-black mt-1">{item.hours}</div>
                                                     )}
                                                 </div>
                                             ))}
@@ -170,7 +170,7 @@ export default function EmployeeDashboard() {
                                 {activeTab === 'Profile' && (
                                     <div>
                                         <div className="bg-white shadow-md rounded-lg p-6 max-w-3xl mx-auto mt-2">
-                                            <h2 className="text-sm text-gray-400 font-semibold mb-2">Basic Info</h2>
+                                            <h2 className="text-sm text-black font-semibold mb-2">Basic Info</h2>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="flex flex-col">
                                                     <label className="text-sm font-medium text-gray-600">ID Number</label>

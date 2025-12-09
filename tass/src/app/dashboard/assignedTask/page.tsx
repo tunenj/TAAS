@@ -187,12 +187,11 @@ export default function AssignTaskPage() {
   };
 
   const btnClass = (active: boolean, variant: "green" | "red") =>
-    `${
-      active
-        ? variant === "green"
-          ? "bg-green-600 text-white border-green-600"
-          : "bg-red-600 text-white border-red-600"
-        : "bg-white text-gray-700 border-gray-300"
+    `${active
+      ? variant === "green"
+        ? "bg-green-600 text-white border-green-600"
+        : "bg-red-600 text-white border-red-600"
+      : "bg-white text-gray-700 border-gray-300"
     } inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full border`;
 
   return (
@@ -205,11 +204,10 @@ export default function AssignTaskPage() {
             <Link
               key={tab.name}
               href={tab.href}
-              className={`px-3 sm:px-4 py-2 font-medium ${
-                isActive
+              className={`px-3 sm:px-4 py-2 font-medium ${isActive
                   ? "text-orange-500 border-b-2 border-orange-500"
                   : "text-gray-500 hover:text-orange-500"
-              }`}
+                }`}
             >
               {tab.name}
             </Link>
@@ -404,7 +402,7 @@ export default function AssignTaskPage() {
                       })}
                     </div>
                   ) : (
-                    <span className="text-xs text-gray-400">—</span>
+                    <span className="text-xs text-black">—</span>
                   )}
                 </td>
               </tr>

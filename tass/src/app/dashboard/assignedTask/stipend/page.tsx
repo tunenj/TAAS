@@ -64,7 +64,7 @@ export default function StipendManagement() {
 
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-2.5 text-black" size={18} />
             <input
               type="text"
               placeholder="Search Testers Name"
@@ -155,11 +155,10 @@ export default function StipendManagement() {
                 <td className="p-3 text-orange-500">{item.projectLinked}</td>
                 <td className="p-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      item.eligibilityStatus === "Eligible"
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${item.eligibilityStatus === "Eligible"
                         ? "bg-green-100 text-green-600"
                         : "bg-red-100 text-red-600"
-                    }`}
+                      }`}
                   >
                     {item.eligibilityStatus}
                   </span>
@@ -177,11 +176,10 @@ export default function StipendManagement() {
                   {item.taskCompletion}%
                 </td>
                 <td
-                  className={`p-3 text-center font-medium ${
-                    item.availability === "Active"
+                  className={`p-3 text-center font-medium ${item.availability === "Active"
                       ? "text-green-600"
                       : "text-gray-500"
-                  }`}
+                    }`}
                 >
                   {item.availability}
                 </td>

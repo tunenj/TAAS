@@ -58,7 +58,7 @@ const ResetPasswordForm: React.FC = () => {
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             required
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-gray-400 focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-black focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
                         />
                     </div>
 
@@ -81,7 +81,7 @@ const ResetPasswordForm: React.FC = () => {
                                                 <span className="block bg-gray-300 rounded-full w-2 h-2" />
                                             )}
                                         </span>
-                                        <span className={passed ? 'text-gray-600' : 'text-gray-400'}>{label}</span>
+                                        <span className={passed ? 'text-gray-600' : 'text-black'}>{label}</span>
                                     </div>
                                 )
                             })}
@@ -100,7 +100,7 @@ const ResetPasswordForm: React.FC = () => {
                             value={confirmPassword}
                             onChange={e => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-gray-400 focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700 placeholder:text-black focus:border-orange-500 focus:ring-orange-500 focus:outline-none"
                         />
                     </div>
 

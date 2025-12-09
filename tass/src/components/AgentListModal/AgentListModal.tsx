@@ -18,7 +18,7 @@ const agents: Agent[] = [
   { id: 4, name: "Kristin Watson", email: "tim.jennings@example.com", avatar: "/images/image1.png" },
   { id: 5, name: "Ralph Edwards", email: "tim.jennings@example.com", avatar: "/images/image.png" },
   { id: 6, name: "Kristin Watson", email: "tim.jennings@example.com", avatar: "/images/image1.png" },
-   { id: 7, name: "Arlene McCoy", email: "tim.jennings@example.com", avatar: "/images/image.png" },
+  { id: 7, name: "Arlene McCoy", email: "tim.jennings@example.com", avatar: "/images/image.png" },
   { id: 8, name: "Ralph Edwards", email: "tim.jennings@example.com", avatar: "/images/image1.png" },
   { id: 9, name: "Wade Warren", email: "tim.jennings@example.com", avatar: "/images/image.png" },
   { id: 10, name: "Kristin Watson", email: "tim.jennings@example.com", avatar: "/images/image1.png" },
@@ -48,11 +48,11 @@ const AgentAssignModal = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="absolute left-100 bg-white bg-opacity-40 flex shadow-md justify-center items-center z-50 mt-10">
       <div className="bg-white rounded-xl w-[430px] max-h-[500px] shadow-lg flex flex-col p-4 relative">
-        
+
         {/*Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
+          className="absolute top-3 right-3 text-black hover:text-gray-600 transition"
           aria-label="Close Modal"
         >
           <X size={18} />

@@ -1,31 +1,25 @@
-// app/api/auth/verify-email/token/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Production-ready email verification redirect
+ * - Redirects from /api/.../token to frontend /auth/verify-email
+ * - Works automatically on localhost, staging, or production
+ */
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const token = searchParams.get('token');
-  
+  // Get token from query
+  const token = request.nextUrl.searchParams.get("token");
+
+  // Determine base URL dynamically
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host") || "localhost:3000";
+  const baseURL = `${protocol}://${host}`;
+
+  // No token → redirect to frontend with error
   if (!token) {
-    console.error('No token provided');
-    return NextResponse.redirect(new URL('/auth/verify-email?error=no_token', request.url));
+    return NextResponse.redirect(`${baseURL}/auth/verify-email/?error=no_token`);
   }
-  
-  try {
-    // Decode the token
-    const decodedToken = decodeURIComponent(token);
-    console.log('Decoded token:', decodedToken);
-    
-    const email = decodedToken.split(':')[0];
-    console.log(`Email to verify: ${email}`);
-    
-    // Redirect to frontend page with token
-    const redirectUrl = `/auth/verify-email?token=${encodeURIComponent(token)}`;
-    console.log('Redirecting to:', redirectUrl);
-    
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
-    
-  } catch (error) {
-    console.error('Verification error:', error);
-    return NextResponse.redirect(new URL('/auth/verify-email?error=server_error', request.url));
-  }
+
+  // Redirect to frontend verify page with token
+  const redirectURL = `${baseURL}/auth/verify-email/?token=${encodeURIComponent(token)}`;
+  return NextResponse.redirect(redirectURL);
 }

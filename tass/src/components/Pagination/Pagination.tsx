@@ -47,11 +47,10 @@ export default function Pagination({
       <button
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`px-4 py-1 rounded-2xl border border-gray-300 ${
-          currentPage === 1
-            ? "cursor-not-allowed text-gray-400 bg-gray-100"
+        className={`px-4 py-1 rounded-2xl border border-gray-300 ${currentPage === 1
+            ? "cursor-not-allowed text-black bg-gray-100"
             : "hover:bg-orange-200"
-        }`}
+          }`}
       >
         Prev
       </button>
@@ -59,9 +58,8 @@ export default function Pagination({
       <button
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`px-4 py-1 rounded-2xl border border-orange-500 bg-orange-500 text-white ${
-          currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-orange-600"
-        }`}
+        className={`px-4 py-1 rounded-2xl border border-orange-500 bg-orange-500 text-white ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-orange-600"
+          }`}
       >
         Next
       </button>

@@ -45,7 +45,7 @@ const PasswordRequirements: React.FC<Props> = ({ password }) => {
                                 )}
                             </span>
                             <span
-                                className={passed ? "text-gray-600" : "text-gray-400"}
+                                className={passed ? "text-gray-600" : "text-black"}
                             >
                                 {label}
                             </span>

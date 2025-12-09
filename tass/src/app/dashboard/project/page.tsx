@@ -121,7 +121,7 @@ export default function ProjectsTable() {
                   >
                     Edit
                   </Link>
-                  <span className="text-gray-400">|</span>
+                  <span className="text-black">|</span>
                   <button className="text-red-500 hover:underline text-xs">
                     Delete
                   </button>

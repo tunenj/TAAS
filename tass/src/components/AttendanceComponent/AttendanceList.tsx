@@ -91,7 +91,7 @@ const AttendanceDashboard: React.FC = () => {
                             <img src={agent.avatar} alt={agent.name} className="w-9 h-9 rounded-full object-cover" />
                             <div>
                                 <p className="font-medium text-gray-800">{agent.name}</p>
-                                <p className="text-xs text-gray-400">{agent.email}</p>
+                                <p className="text-xs text-black">{agent.email}</p>
                             </div>
                         </li>
                     ))}
@@ -104,15 +104,15 @@ const AttendanceDashboard: React.FC = () => {
                 <div className="grid grid-cols-3 gap-6 mb-6">
                     <div className="border border-gray-200 rounded-lg p-4 flex flex-col items-center">
                         <p className="font-semibold text-lg">{totalDaysWorked}</p>
-                        <p className="text-gray-400 text-sm mt-1">Total days worked</p>
+                        <p className="text-black text-sm mt-1">Total days worked</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4 flex flex-col items-center">
                         <p className="font-semibold text-lg">{totalPresent}</p>
-                        <p className="text-gray-400 text-sm mt-1">Total present days</p>
+                        <p className="text-black text-sm mt-1">Total present days</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4 flex flex-col items-center">
                         <p className="font-semibold text-lg">{totalAbsent}</p>
-                        <p className="text-gray-400 text-sm mt-1">Total absent days</p>
+                        <p className="text-black text-sm mt-1">Total absent days</p>
                     </div>
                 </div>
 
