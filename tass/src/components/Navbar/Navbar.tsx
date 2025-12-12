@@ -25,10 +25,10 @@ export default function Navbar() {
                     </Link>
                     {/* Desktop nav links */}
                     <div className="hidden sm:flex items-center space-x-6 text-[14px] font-normal text-white">
-                        <Link href="/Home" className="hover:underline transition-none">Home</Link>
-                        <Link href="/How It Works" className="hover:underline transition-none">How It Works</Link>
-                        <Link href="/FAQ" className="hover:underline transition-none">FAQ</Link>
-                        <Link href="/pricing" className="hover:underline transition-none">Pricing</Link>
+                        <Link href="#"className="hover:underline transition-none">Home</Link>
+                        <Link href="#" className="hover:underline transition-none">How It Works</Link>
+                        <Link href="#" className="hover:underline transition-none">FAQ</Link>
+                        <Link href="#" className="hover:underline transition-none">Pricing</Link>
                     </div>
                 </div>
 
@@ -70,21 +70,21 @@ export default function Navbar() {
             {menuOpen && (
                 <div className="sm:hidden absolute top-full left-0 w-full bg-[#F8F5F6] border-t border-[#e0e0e0] px-6 py-4 z-40 shadow-md">
                     <div className="flex flex-col space-y-3 mb-3 text-[#222] text-[15px] font-normal">
-                        <Link href="/Home" onClick={() => setMenuOpen(false)}>
+                        <Link href="#" onClick={() => setMenuOpen(false)}>
                             Home
                         </Link>
-                        <Link href="/How It Works" onClick={() => setMenuOpen(false)}>
+                        <Link href="#" onClick={() => setMenuOpen(false)}>
                             How It Works
                         </Link>
-                        <Link href="/pricing" onClick={() => setMenuOpen(false)}>
+                        <Link href="#" onClick={() => setMenuOpen(false)}>
                             FAQ
                         </Link>
-                        <Link href="/pricing" onClick={() => setMenuOpen(false)}>
+                        <Link href="#" onClick={() => setMenuOpen(false)}>
                             Pricing
                         </Link>
                     </div>
                     <div className="flex flex-col space-y-2">
-                        <Link href="/register" onClick={() => setMenuOpen(false)}>
+                        <Link href="/Register" onClick={() => setMenuOpen(false)}>
                             <button
                                 className="border border-[#E95D28] text-[#E95D28] bg-transparent rounded-full px-4 py-2 text-[14px] font-medium"
                             >

@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 
+
 const stats = [
     {
         label: 'Ongoing Projects',
@@ -158,9 +159,6 @@ const Dashboard: React.FC = () => (
                 Hey Triston -
                 <span className="text-black text-sm"> here’s what your dashboard looks like today!</span>
             </h1>
-            <button className="bg-orange-500 text-white px-5 py-2 rounded-2xl font-medium hover:bg-orange-600 transition">
-                New project
-            </button>
         </div>
 
         {/* Top stats cards */}

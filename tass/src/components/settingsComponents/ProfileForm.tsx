@@ -3,6 +3,8 @@
 import React from 'react';
 import { Lock, User, ArrowRight } from 'lucide-react';
 import { FormState } from '@/types/settings';
+import OrganizationRegistrationLink from '@/components/OrganizationRegistrationLink'
+
 
 interface ProfileFormProps {
   form: FormState;
@@ -130,15 +132,15 @@ export default function ProfileForm({
         </div>
 
         {/* Administrative Settings Header */}
-        <div className="sm:col-span-2 mt-5">
+        {/* <div className="sm:col-span-2 mt-5">
           <h3 className="text-sm text-black">Administrative Settings</h3>
           <p className="text-xs text-black">
             Manage organization, users and permissions
           </p>
-        </div>
+        </div> */}
 
         {/* Administrative Settings Box */}
-        <div className="sm:col-span-2 rounded-2xl border border-gray-300 mt-3 p-3">
+        {/* <div className="sm:col-span-2 rounded-2xl border border-gray-300 mt-3 p-3">
           <div className="flex justify-between">
             <div className="flex items-center gap-2">
               <User className="w-6 h-6 text-gray-700" />
@@ -158,9 +160,12 @@ export default function ProfileForm({
           <p className="text-xs text-black mt-4">
             Create supervisors and assign agents. Review roles and access.
           </p>
-        </div>
+        </div> */}
 
       </form>
+      <div className="">
+        <OrganizationRegistrationLink />
+      </div>
     </>
   );
 }

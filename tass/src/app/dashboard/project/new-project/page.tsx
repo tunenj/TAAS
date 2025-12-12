@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
+import toast from "react-hot-toast";
 
 interface ProjectForm {
   name: string;
@@ -21,14 +22,16 @@ const NewProjectForm: React.FC = () => {
     start_datetime: "",
     end_datetime: "",
   });
+
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   const { accessToken, BASE_URL, refreshUser, user } = useAuth(true);
   const router = useRouter();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -37,12 +40,9 @@ const NewProjectForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
 
     try {
-      if (!accessToken) {
-        await refreshUser();
-      }
+      if (!accessToken) await refreshUser();
 
       const response = await fetch(`${BASE_URL}/projects/create/`, {
         method: "POST",
@@ -54,9 +54,12 @@ const NewProjectForm: React.FC = () => {
           name: form.name,
           description: form.description,
           priority: form.priority,
-          // Convert datetime-local to YYYY-MM-DD
-          start_datetime: form.start_datetime ? form.start_datetime.split("T")[0] : null,
-          end_datetime: form.end_datetime ? form.end_datetime.split("T")[0] : null,
+          start_datetime: form.start_datetime
+            ? form.start_datetime.split("T")[0]
+            : null,
+          end_datetime: form.end_datetime
+            ? form.end_datetime.split("T")[0]
+            : null,
           created_by: user?.id,
         }),
       });
@@ -64,21 +67,14 @@ const NewProjectForm: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage("Project created successfully!");
-        console.log("API Response:", data.data);
-        setForm({
-          name: "",
-          description: "",
-          priority: "medium",
-          start_datetime: "",
-          end_datetime: "",
-        });
+        toast.success("Project created successfully. Redirecting...");
+        setTimeout(() => router.push("/dashboard/project"), 800);
       } else {
-        setMessage(`Error: ${data.message}`);
+        toast.error(data.message || "Failed to create project");
       }
-    } catch (error: any) {
-      console.error("Error creating project:", error);
-      setMessage("An error occurred while creating the project.");
+    } catch (error) {
+      console.error(error);
+      toast.error("A server error occurred.");
     } finally {
       setLoading(false);
     }
@@ -92,134 +88,128 @@ const NewProjectForm: React.FC = () => {
       start_datetime: "",
       end_datetime: "",
     });
-    setMessage(null);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-3xl mx-auto p-6 space-y-6 bg-white rounded shadow-md mt-12"
-    >
-      <h1 className="flex items-center gap-2 text-xl font-semibold mb-4">
-        <ArrowLeft
-          className="w-5 h-5 cursor-pointer hover:text-gray-600"
-          onClick={() => router.back()}
-        />
-        New Project
-      </h1>
-
-      {message && (
-        <div
-          className={`p-3 rounded ${
-            message.includes("successfully")
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {message}
+    <div className="max-w-4xl mx-auto mt-12 px-4 sm:px-6 lg:px-8">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-lg p-8 space-y-6"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <ArrowLeft
+            className="w-6 h-6 cursor-pointer text-gray-500 hover:text-gray-700"
+            onClick={() => router.back()}
+          />
+          <h1 className="text-2xl font-semibold text-gray-800">
+            Create New Project
+          </h1>
         </div>
-      )}
 
-      {/* Project Name */}
-      <div className="flex flex-col">
-        <label htmlFor="name" className="font-medium mb-1">
-          Project Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-          placeholder="Mobile App Development"
-          required
-        />
-      </div>
+        {/* Project Name */}
+        <div className="flex flex-col">
+          <label htmlFor="name" className="text-gray-700 font-medium mb-2">
+            Project Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Mobile App Development"
+            required
+            className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+          />
+        </div>
 
-      {/* Description */}
-      <div className="flex flex-col">
-        <label htmlFor="description" className="font-medium mb-1">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          rows={4}
-          className="border border-gray-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-          placeholder="Describe your project here..."
-          required
-        />
-      </div>
+        {/* Description */}
+        <div className="flex flex-col">
+          <label htmlFor="description" className="text-gray-700 font-medium mb-2">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={5}
+            placeholder="Describe your project..."
+            required
+            className="border border-gray-300 rounded-md px-4 py-2 resize-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+          />
+        </div>
 
-      {/* Start Datetime */}
-      <div className="flex flex-col">
-        <label htmlFor="start_datetime" className="font-medium mb-1">
-          Start Date & Time
-        </label>
-        <input
-          type="datetime-local"
-          id="start_datetime"
-          name="start_datetime"
-          value={form.start_datetime}
-          onChange={handleChange}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-      </div>
+        {/* Dates */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="flex flex-col">
+            <label htmlFor="start_datetime" className="text-gray-700 font-medium mb-2">
+              Start Date & Time
+            </label>
+            <input
+              type="datetime-local"
+              id="start_datetime"
+              name="start_datetime"
+              value={form.start_datetime}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+            />
+          </div>
 
-      {/* End Datetime */}
-      <div className="flex flex-col">
-        <label htmlFor="end_datetime" className="font-medium mb-1">
-          End Date & Time
-        </label>
-        <input
-          type="datetime-local"
-          id="end_datetime"
-          name="end_datetime"
-          value={form.end_datetime}
-          onChange={handleChange}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-      </div>
+          <div className="flex flex-col">
+            <label htmlFor="end_datetime" className="text-gray-700 font-medium mb-2">
+              End Date & Time
+            </label>
+            <input
+              type="datetime-local"
+              id="end_datetime"
+              name="end_datetime"
+              value={form.end_datetime}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+            />
+          </div>
+        </div>
 
-      {/* Priority */}
-      <div className="flex flex-col">
-        <label htmlFor="priority" className="font-medium mb-1">
-          Priority
-        </label>
-        <select
-          id="priority"
-          name="priority"
-          value={form.priority}
-          onChange={handleChange}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
+        {/* Priority */}
+        <div className="flex flex-col sm:w-1/3">
+          <label htmlFor="priority" className="text-gray-700 font-medium mb-2">
+            Priority
+          </label>
+          <select
+            id="priority"
+            name="priority"
+            value={form.priority}
+            onChange={handleChange}
+            className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-4">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-8 py-1 border border-orange-500 text-orange-500 rounded-2xl hover:bg-orange-50 focus:outline-none"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-8 py-1 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 focus:outline-none disabled:opacity-50"
-        >
-          {loading ? "Saving..." : "Save"}
-        </button>
-      </div>
-    </form>
+        {/* Buttons */}
+        <div className="flex justify-end gap-4 mt-6">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-6 py-2 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50 transition"
+          >
+            {loading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

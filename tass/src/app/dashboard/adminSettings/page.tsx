@@ -10,11 +10,12 @@ import ProfileForm from '@/components/settingsComponents/ProfileForm';
 import UserManagementTab from '@/components/settingsComponents/UserManagementTab';
 import FormCard from '@/components/settingsComponents/FormCard';
 
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'userManagement'>('profile');
   const { refreshUser } = useAuth();
   const [showResetModal, setShowResetModal] = useState(false);
-  
+
   const { form, isLoadingProfile } = useUserProfile();
   const isLoadingOverall = isLoadingProfile;
 
@@ -47,21 +48,19 @@ export default function SettingsPage() {
       <nav className="mb-6 border-b border-gray-200 text-sm font-medium">
         <ul className="flex gap-6">
           <li
-            className={`pb-3 cursor-pointer ${
-              activeTab === 'profile'
+            className={`pb-3 cursor-pointer ${activeTab === 'profile'
                 ? 'text-orange-500 border-b-2 border-orange-500'
                 : 'text-gray-600 hover:text-gray-800'
-            }`}
+              }`}
             onClick={() => setActiveTab('profile')}
           >
             Settings
           </li>
           <li
-            className={`pb-3 cursor-pointer ${
-              activeTab === 'userManagement'
+            className={`pb-3 cursor-pointer ${activeTab === 'userManagement'
                 ? 'text-orange-500 border-b-2 border-orange-500'
                 : 'text-gray-600 hover:text-gray-800'
-            }`}
+              }`}
             onClick={() => setActiveTab('userManagement')}
           >
             User Management
@@ -84,7 +83,7 @@ export default function SettingsPage() {
               <div className="border rounded-2xl border-gray-200 p-6 h-[556px]">
                 <h3 className="text-gray-900 font-semibold mb-2">User Settings</h3>
                 <p className="text-xs text-gray-500 mb-6">Personal Information and Security</p>
-                
+
                 <ProfileForm
                   form={form}
                   isLoading={isLoadingOverall}
@@ -108,7 +107,6 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
-
       <ResetPasswordModal
         isOpen={showResetModal}
         onClose={() => setShowResetModal(false)}

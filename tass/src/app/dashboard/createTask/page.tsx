@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { Upload } from "lucide-react";
+import { useAuth } from "@/app/hooks/useAuth";
+import { toast, Toaster } from "react-hot-toast";
 
 const priorities = ["High", "Medium", "Low"];
-const projects = ["Project Alpha", "Project Beta", "Project Gamma"];
-const taskTypes = ["Feature", "Bug", "Test", "Improvement"];
-const environments = ["Development", "QA", "Production"];
-const locations = ["Lagos", "Abuja", "Remote"];
+const projects = ["1", "2", "3"]; // Replace with actual project IDs
+const environments = ["chrome", "firefox", "Edge"];
+const task_type = ["Functionality", "Performance", "Security"];
 
 export default function CreateTaskPage() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { accessToken, BASE_URL } = useAuth(); 
 
   const tabs = [
     { name: "Create Task", href: "/dashboard/createTask" },
@@ -22,10 +25,9 @@ export default function CreateTaskPage() {
 
   const [form, setForm] = useState({
     title: "",
-    taskId: "",
+    projectId: "",
     startDateTime: "",
     endDateTime: "",
-    project: "",
     priority: "High",
     taskType: "",
     environment: "",
@@ -36,23 +38,127 @@ export default function CreateTaskPage() {
   });
 
   const handleInput = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, files } = e.target as any;
+
+    if (name === "upload" && files?.[0]) {
+      const file = files[0];
+      if (file.type !== "text/csv") {
+        toast.error("Only CSV files are allowed!");
+        return;
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        upload: file,
+      }));
+
+      // Read CSV content to populate Test Script and Expected Result
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const text = event.target?.result as string;
+        const rows = text.split("\n").map((row) => row.split(","));
+        const testScript = rows.map((r) => r[0] || "").join("\n");
+        const expectedResult = rows.map((r) => r[1] || "").join("\n");
+        setForm((prev) => ({
+          ...prev,
+          testScript,
+          expectedResult,
+        }));
+      };
+      reader.readAsText(file);
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: files ? files[0] : value,
+      [name]: value,
     }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.projectId) {
+      toast.error("Project ID is required.");
+      return;
+    }
+
+    const url = `${BASE_URL}/projects/${form.projectId}/tasks/create/`;
+
+    const fd = new FormData();
+    fd.append("title", form.title);
+    fd.append("description", form.testScript);
+    fd.append("status", "open");
+    fd.append("is_completed", "false");
+    fd.append("start_datetime", form.startDateTime);
+    fd.append("end_datetime", form.endDateTime);
+    fd.append("is_assigned", "false");
+
+    // Test cases
+    fd.append(
+      "test_cases",
+      JSON.stringify([
+        {
+          description: form.testScript,
+          task: form.title,
+        },
+      ])
+    );
+
+    // Test scripts CSV file
+    if (form.upload) {
+      fd.append("test_scripts", form.upload);
+      fd.append("expected_scripts", form.upload);
+    }
+
+    // Send task_type as required by backend
+    fd.append("task_type", form.taskType.toLowerCase());
+    fd.append("environment", form.environment.toLowerCase());
+    fd.append("location", form.location);
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: fd,
+      });
+
+      if (!res.ok) throw new Error("Task creation failed");
+
+      toast.success("Task created successfully!");
+
+      // Reset form
+      setForm({
+        title: "",
+        projectId: "",
+        startDateTime: "",
+        endDateTime: "",
+        priority: "High",
+        taskType: "",
+        environment: "",
+        location: "",
+        testScript: "",
+        expectedResult: "",
+        upload: undefined,
+      });
+
+      router.push("/dashboard/assignTask");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   return (
     <main className="flex flex-col px-4 sm:px-6 md:px-8 py-8 mt-2">
+      <Toaster />
+
       {/* Tabs */}
       <div className="flex flex-wrap border-b border-gray-200 mb-4 text-sm gap-2 sm:gap-4">
         {tabs.map((tab) => {
-          // Default to "Create Task" if pathname doesn't match any tab
           const isActive =
             pathname === tab.href ||
             (tab.name === "Create Task" && pathname === "/dashboard/createTask");
@@ -74,7 +180,10 @@ export default function CreateTaskPage() {
       </div>
 
       {/* Form */}
-      <form className="bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto space-y-4"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
@@ -91,13 +200,13 @@ export default function CreateTaskPage() {
 
           <div>
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
-              Task ID
+              Project ID
             </label>
             <input
-              name="taskId"
-              value={form.taskId}
+              name="projectId"
+              value={form.projectId}
               onChange={handleInput}
-              placeholder="TSK-001"
+              placeholder="Enter Project ID"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             />
           </div>
@@ -130,23 +239,6 @@ export default function CreateTaskPage() {
 
           <div>
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
-              Assign to Project
-            </label>
-            <select
-              name="project"
-              value={form.project}
-              onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            >
-              <option value="">Select projects</option>
-              {projects.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 mb-1 font-semibold text-sm">
               Priority
             </label>
             <select
@@ -155,7 +247,7 @@ export default function CreateTaskPage() {
               onChange={handleInput}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             >
-              {["High", "Medium", "Low"].map((item) => (
+              {priorities.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
@@ -165,14 +257,14 @@ export default function CreateTaskPage() {
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
               Task Type
             </label>
-            <select
+             <select
               name="taskType"
               value={form.taskType}
               onChange={handleInput}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             >
               <option value="">Please select</option>
-              {taskTypes.map((item) => (
+              {task_type.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
@@ -199,17 +291,14 @@ export default function CreateTaskPage() {
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
               Location
             </label>
-            <select
+            <input
+              type="text"
               name="location"
               value={form.location}
               onChange={handleInput}
+              placeholder="Type location"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            >
-              <option value="">Please select</option>
-              {locations.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            />
           </div>
         </div>
 
@@ -239,7 +328,7 @@ export default function CreateTaskPage() {
 
         <div>
           <label className="block text-gray-700 text-sm font-semibold mb-2">
-            Upload Test Scripts
+            Upload Test Scripts (CSV only)
           </label>
           <div className="flex flex-col items-start mt-2">
             <label
@@ -250,11 +339,12 @@ export default function CreateTaskPage() {
                 size={16}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"
               />
-              Upload Files
+              Upload CSV
               <input
                 id="file-upload"
                 type="file"
                 name="upload"
+                accept=".csv"
                 onChange={handleInput}
                 className="hidden"
               />

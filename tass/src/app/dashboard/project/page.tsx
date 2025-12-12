@@ -1,147 +1,205 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { ChevronDown } from "lucide-react";
 import Pagination from "@/components/Pagination/Pagination";
+import { useAuth } from "@/app/hooks/useAuth";
+import toast, { Toaster } from "react-hot-toast"; // Import toast
 
-const projectId = "PRJ-001";
+interface Project {
+  project_id: string;
+  name: string;
+  description: string;
+  start_datetime: string;
+  end_datetime: string;
+  priority: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  owner: string;
+}
 
-const projects = Array.from({ length: 33 }).map((_, idx) => ({
-  id: idx + 1,
-  projectName: "Mobile App Development",
-  description:
-    "Comprehensive testing of modules for functionality and efficiency...",
-  startDate: "2025-07-30",
-  deadline: "2025-08-30",
-}));
+interface ApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Project[];
+}
 
 export default function ProjectsTable() {
-  // Pagination states
+  const { BASE_URL, accessToken } = useAuth();
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
-  // Derived values
-  const totalPages = Math.ceil(projects.length / pageSize);
+  // Fetch projects
+  const fetchProjects = async () => {
+    if (!BASE_URL || !accessToken) return;
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${BASE_URL}/projects/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("SERVER ERROR:", await response.text());
+        throw new Error("Failed to fetch projects");
+      }
+
+      const data: ApiResponse = await response.json();
+      setProjects(data.results || []);
+      setTotalCount(data.count || 0);
+      setError(null);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("Failed to load projects.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, [BASE_URL, accessToken]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedProjects = projects.slice(startIndex, startIndex + pageSize);
 
+  const formatDate = (dateString: string) => dateString ? dateString.split("T")[0] : "";
+
+  // Delete project with toast notification
+  const handleDelete = async (projectId: string) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      const response = await fetch(`${BASE_URL}/projects/${projectId}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete");
+
+      setProjects((prev) => prev.filter((p) => p.project_id !== projectId));
+      setTotalCount((c) => c - 1);
+
+      toast.success("Project deleted successfully.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete project.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading projects…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="bg-red-100 p-4 rounded">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white p-6 mt-5">
-      <div className="flex justify-between mb-3 flex-wrap gap-2">
+      <Toaster position="top-right" reverseOrder={false} />
+
+      <div className="flex justify-between mb-6">
         <h2 className="font-semibold text-lg">All Projects</h2>
-        <Link href="/dashboard/project/new-project" passHref>
-          <button className="border border-orange-400 text-orange-500 px-4 py-1 font-semibold rounded-lg hover:bg-orange-50 transition text-sm">
-            Add Projects
+        <Link href="/dashboard/project/new-project">
+          <button className="border border-orange-400 text-orange-500 px-4 py-2 font-semibold rounded-lg hover:bg-orange-50">
+            Add Project
           </button>
         </Link>
       </div>
 
-      {/* Filters */}
-      <div className="w-[533.2px] flex items-center space-x-1 gap-8 border border-gray-200 p-2 mb-3 rounded-lg overflow-hidden text-xs font-medium">
-        <button className="flex items-center px-12 py-1 border-r border-gray-200 text-gray-600">
-          <Image
-            src="/icons/filter-list.png"
-            alt="Filter"
-            width={28}
-            height={28}
-            className="object-cover"
-          />
-        </button>
-        <button className="px-3 py-1 border-r border-gray-200">Filter By</button>
-        <button className="flex items-center px-3 py-1 border-r border-gray-200">
-          <span>Date</span>
-          <ChevronDown size={20} className="ml-2 text-gray-600" />
-        </button>
-        <button className="flex items-center px-3 py-1 gap-3 text-orange-500 hover:text-orange-600">
-          <Image
-            src="/icons/ic-replay.png"
-            alt="Reset"
-            width={28}
-            height={28}
-            className="object-cover"
-          />
-          Reset Filter
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-auto rounded-xl border border-gray-200 -ml-6">
-        <table className="min-w-full bg-white text-sm">
+      <div className="overflow-auto rounded-xl border border-gray-200 shadow-sm">
+        <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-gray-600">
-              <th className="px-3 py-2 text-left font-semibold">
-                <input type="checkbox" />
-              </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">S/N</th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Project Name
-              </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Description
-              </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Start Date
-              </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Deadline
-              </th>
-              {/* <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Assigned Agents
-              </th>
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">
-                Test Cases
-              </th> */}
-              <th className="px-3 py-2 text-[#374151] text-left font-semibold">Action</th>
+            <tr className="bg-gray-50 text-black">
+              <th className="px-3 py-2"><input type="checkbox" /></th>
+              <th className="px-3 py-2 text-left font-semibold">S/N</th>
+              <th className="px-3 py-2 text-left font-semibold">Project ID</th>
+              <th className="px-3 py-2 text-left font-semibold">Project Name</th>
+              <th className="px-3 py-2 text-left font-semibold">Description</th>
+              <th className="px-3 py-2 text-left font-semibold min-w-[100px]">Start Date</th>
+              <th className="px-3 py-2 text-left font-semibold min-w-[100px]">Deadline</th>
+              {/* <th className="px-3 py-2 text-left font-semibold">Assigned Agents</th>
+              <th className="px-3 py-2 text-left font-semibold">Test Cases</th> */}
+              <th className="px-3 py-2 text-left font-semibold">Action</th>
             </tr>
           </thead>
+
           <tbody>
-            {paginatedProjects.map((proj, i) => (
-              <tr
-                className="border-b border-gray-300 last:border-0 hover:bg-gray-50 transition"
-                key={proj.id}
-              >
-                <td className="px-3 py-2">
-                  <input type="checkbox" defaultChecked={i === 0} />
-                </td>
-                <td className="px-2 py-2">{startIndex + i + 1}</td>
-                <td className="px-2 py-2 text-[#374151] cursor-pointer">
-                  {proj.projectName}
-                </td>
-                <td className="px-2 py-2 text-[#374151] max-w-xs truncate">
-                  {proj.description}
-                </td>
-                <td className="px-2 py-2 text-[#374151]">{proj.startDate}</td>
-                <td className="px-2 py-2 text-[#374151]">{proj.deadline}</td>
-                <td className="px-3 py-2 space-x-1">
-                  <Link
-                    href={`/dashboard/project/${projectId}?edit=true`}
-                    className="text-green-700 hover:underline text-xs"
-                  >
-                    Edit
-                  </Link>
-                  <span className="text-black">|</span>
-                  <button className="text-red-500 hover:underline text-xs">
-                    Delete
-                  </button>
+            {paginatedProjects.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="text-center py-8">
+                  No projects found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              paginatedProjects.map((project, i) => (
+                <tr key={project.project_id} className=" hover:bg-gray-50">
+                  <td className="px-3 py-2"><input type="checkbox" /></td>
+                  <td className="px-3 py-2">{startIndex + i + 1}</td>
+                  <td className="px-3 py-2 font-medium text-gray-800">{project.project_id}</td>
+                  <td className="px-3 py-2 font-medium">{project.name}</td>
+                  <td className="px-3 py-2 max-w-xs truncate">{project.description}</td>
+                  <td className="px-3 py-2">{formatDate(project.start_datetime)}</td>
+                  <td className="px-3 py-2">{formatDate(project.end_datetime)}</td>
+                  {/* <td className="px-3 py-2 text-center">0</td>
+                  <td className="px-3 py-2 text-center">0</td> */}
+                  <td className="px-3 py-2 flex gap-2">
+                    <Link
+                      href={`/dashboard/project/${project.project_id}`}
+                      className="text-orange-500 text-xs hover:underline"
+                    >
+                      View
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(project.project_id)}
+                      className="text-red-500 text-xs hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/*Pagination (centered and functional) */}
-      <div className="flex justify-end items-center mt-6 text-sm text-gray-600">
-        <Pagination
-          totalPages={totalPages}
-          initialPage={currentPage}
-          initialPageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-        />
-      </div>
+      {projects.length > 0 && (
+        <div className="flex justify-end mt-6">
+          <Pagination
+            totalPages={totalPages}
+            initialPage={currentPage}
+            initialPageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      )}
     </div>
   );
 }
