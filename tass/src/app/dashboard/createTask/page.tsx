@@ -194,7 +194,7 @@ export default function CreateTaskPage() {
               value={form.title}
               onChange={handleInput}
               placeholder="Mobile App Development"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             />
           </div>
 
@@ -207,7 +207,7 @@ export default function CreateTaskPage() {
               value={form.projectId}
               onChange={handleInput}
               placeholder="Enter Project ID"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             />
           </div>
 
@@ -220,7 +220,7 @@ export default function CreateTaskPage() {
               type="datetime-local"
               value={form.startDateTime}
               onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             />
           </div>
 
@@ -233,7 +233,7 @@ export default function CreateTaskPage() {
               type="datetime-local"
               value={form.endDateTime}
               onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             />
           </div>
 
@@ -245,7 +245,7 @@ export default function CreateTaskPage() {
               name="priority"
               value={form.priority}
               onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             >
               {priorities.map((item) => (
                 <option key={item}>{item}</option>
@@ -261,9 +261,9 @@ export default function CreateTaskPage() {
               name="taskType"
               value={form.taskType}
               onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-30 rounded px-3 py-2 text-sm"
             >
-              <option value="">Please select</option>
+              <option value="" className="text-black">Please select</option>
               {task_type.map((item) => (
                 <option key={item}>{item}</option>
               ))}
@@ -278,9 +278,9 @@ export default function CreateTaskPage() {
               name="environment"
               value={form.environment}
               onChange={handleInput}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             >
-              <option value="">Please select</option>
+              <option value="" className="text-black">Please select</option>
               {environments.map((item) => (
                 <option key={item}>{item}</option>
               ))}
@@ -297,7 +297,7 @@ export default function CreateTaskPage() {
               value={form.location}
               onChange={handleInput}
               placeholder="Type location"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm"
             />
           </div>
         </div>
@@ -310,7 +310,7 @@ export default function CreateTaskPage() {
             name="testScript"
             value={form.testScript}
             onChange={handleInput}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm min-h-[100px]"
+            className="w-full border border-gray-300  placeholder-gray-800 rounded px-3 py-2 text-sm min-h-[100px]"
           />
         </div>
 
@@ -322,7 +322,7 @@ export default function CreateTaskPage() {
             name="expectedResult"
             value={form.expectedResult}
             onChange={handleInput}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm min-h-[120px]"
+            className="w-full border border-gray-300 placeholder-gray-800 rounded px-3 py-2 text-sm min-h-[120px]"
           />
         </div>
 

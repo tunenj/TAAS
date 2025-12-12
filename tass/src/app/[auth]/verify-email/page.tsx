@@ -2,72 +2,80 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-// Fallback API URL (staging)
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://atasstaging.avetiumconsult.com/api";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function VerifyEmail() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState("Preparing verification...");
+  const [status, setStatus] = useState<string>("Preparing verification...");
+  const [verified, setVerified] = useState<boolean>(false);
 
   useEffect(() => {
-    // No token found
     if (!token) {
-      setStatus("No token found. Redirecting...");
-      setTimeout(() => router.replace("/login?error=no_token"), 1500);
+      setStatus("No token found in the URL.");
+      toast.error("No token found in the URL.");
       return;
     }
 
     const verifyEmail = async () => {
+      setStatus("Verifying your email, please wait...");
       try {
-        setStatus("Verifying your email...");
-
-        const res = await fetch(
-          `${API_BASE}/auth/verify-email/token/?token=${encodeURIComponent(
-            token
-          )}`,
-          { method: "GET" }
+        const response = await fetch(
+          "https://atasstaging.avetiumconsult.com/api/auth/verify-email/token/",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          }
         );
 
-        const data = await res.json();
+        const data = await response.json();
 
-        if (res.ok && data.success) {
-          setStatus("✅ Email verified! Redirecting...");
+        if (response.ok && data.success) {
+          setStatus("✅ Email verified successfully!");
+          toast.success("Email verified successfully!");
+          setVerified(true);
+        } else if (data.errors?.non_field_errors) {
+          const errorMessage = data.errors.non_field_errors[0];
+          setStatus(`Verification failed: ${errorMessage}`);
+          toast.error(errorMessage);
+        } else if (data.message) {
+          setStatus(`Verification failed: ${data.message}`);
+          toast.error(data.message);
         } else {
-          const msg =
-            data?.errors?.non_field_errors?.[0] ||
-            "Invalid or expired token";
-          setStatus(`❌ ${msg}`);
+          setStatus("Verification failed: Unknown error.");
+          toast.error("Verification failed: Unknown error.");
         }
       } catch (error) {
-        console.error(error);
-        setStatus("❌ Server error.");
+        console.error("Email verification error:", error);
+        setStatus("Something went wrong. Please try again later.");
+        toast.error("Something went wrong. Please try again later.");
       }
     };
 
     verifyEmail();
-  }, [token, router]);
+  }, [token]);
+
+  const handleLogin = () => {
+    router.push("/login"); // Redirect to your login page
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800">
-          Email Verification
-        </h1>
+    <div className="max-w-md mx-auto mt-12 p-6 text-center border border-gray-200 rounded-lg shadow-sm bg-white">
+      <Toaster position="top-right" />
+      <h1 className="text-2xl font-bold text-gray-800">Email Verification</h1>
+      <p className="mt-5 text-gray-700 text-base">{status}</p>
 
-        <p className="text-gray-700">{status}</p>
-
-        <div className="mt-4">
-          <div className="h-1 w-full bg-gray-200 rounded overflow-hidden">
-            <div className="h-1 bg-orange-600 animate-pulse" />
-          </div>
-        </div>
-      </div>
+      {verified && (
+        <button
+          onClick={handleLogin}
+          className="mt-6 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors duration-200"
+        >
+          Go to Login
+        </button>
+      )}
     </div>
   );
 }
