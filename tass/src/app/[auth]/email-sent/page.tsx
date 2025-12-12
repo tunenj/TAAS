@@ -18,7 +18,7 @@ export default function EmailSentPage() {
   }, []);
 
   const handleGoToLogin = () => {
-    router.push('/login');
+    router.push('/Login');
   };
 
   return (

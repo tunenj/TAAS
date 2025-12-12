@@ -59,7 +59,7 @@ export default function VerifyEmail() {
   }, [token]);
 
   const handleLogin = () => {
-    router.push("/login"); // Redirect to your login page
+    router.push("/Login"); // Redirect to your login page
   };
 
   return (
