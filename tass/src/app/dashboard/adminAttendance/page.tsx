@@ -73,7 +73,7 @@ interface UserProfile {
   department?: string;
 }
 
-type AttendanceStatus = 'checked-in' | 'checked-out' | null;
+type AttendanceStatus = 'checked-in' | 'checked-out' | 'not-checked-in' | null;
 
 // Helper function to calculate total hours from duration string
 const calculateTotalHours = (duration: string): string => {
@@ -103,7 +103,7 @@ export default function EmployeeDashboard() {
   const { accessToken, BASE_URL, refreshUser, user } = useAuth(true);
 
   const [activeTab, setActiveTab] = useState<'Activities' | 'Profile'>('Activities');
-  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus>(null);
+  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus>("not-checked-in");
   const [checkInTime, setCheckInTime] = useState<string | null>(null);
   const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
   const [durationStr, setDurationStr] = useState<string>('00:00:00');
@@ -201,13 +201,34 @@ export default function EmployeeDashboard() {
 
     try {
       setIsLoadingAttendance(true);
+
       const res = await fetch(`${BASE_URL}/profile/me/attendance/`, {
-        method: 'GET',
+        method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
+
+      // ✅ Handle "no attendance yet"
+      if (res.status === 400) {
+        // No attendance yet → show week as Absent/Weekend
+        const emptyAttendance: AttendanceRecord[] = [];
+
+        setAttendanceSummary(emptyAttendance);
+        setAttendanceCalendar(generateAttendanceCalendar(emptyAttendance));
+
+        setAttendanceStatus("not-checked-in");
+        setCheckInTime(null);
+        setCheckOutTime(null);
+
+        localStorage.removeItem("attendanceStatus");
+        localStorage.removeItem("checkInTime");
+        localStorage.removeItem("checkOutTime");
+
+        return;
+      }
+
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -215,38 +236,44 @@ export default function EmployeeDashboard() {
 
       const data: AttendanceSummaryResponse = await res.json();
 
-      if (data.success && data.data.attendance) {
+      if (data.success && data.data?.attendance) {
         setAttendanceSummary(data.data.attendance);
 
-        // Transform the data for the calendar view
         const calendarData = generateAttendanceCalendar(data.data.attendance);
         setAttendanceCalendar(calendarData);
 
-        // Check if user is currently checked in
-        const today = dayjs().format('YYYY-MM-DD');
-        const todayAttendance = data.data.attendance.find(record =>
-          record.created_at === today &&
-          record.check_in_time &&
-          !record.check_out_time
+        const today = dayjs().format("YYYY-MM-DD");
+
+        const todayAttendance = data.data.attendance.find(
+          (record) =>
+            record.created_at === today &&
+            record.check_in_time &&
+            !record.check_out_time
         );
 
         if (todayAttendance) {
-          setAttendanceStatus('checked-in');
+          setAttendanceStatus("checked-in");
           setCheckInTime(todayAttendance.check_in_time);
           setCheckOutTime(null);
 
-          // Update localStorage
-          localStorage.setItem('attendanceStatus', 'checked-in');
-          localStorage.setItem('checkInTime', todayAttendance.check_in_time || '');
-          localStorage.removeItem('checkOutTime');
+          localStorage.setItem("attendanceStatus", "checked-in");
+          localStorage.setItem(
+            "checkInTime",
+            todayAttendance.check_in_time || ""
+          );
+          localStorage.removeItem("checkOutTime");
+        } else {
+          setAttendanceStatus("not-checked-in");
+          localStorage.removeItem("attendanceStatus");
         }
       }
     } catch (err) {
-      console.error('Error fetching attendance summary:', err);
+      console.error("Error fetching attendance summary:", err);
     } finally {
       setIsLoadingAttendance(false);
     }
   };
+
 
   // Generate calendar data from attendance records
   const generateAttendanceCalendar = (attendance: AttendanceRecord[]): AttendanceData[] => {
@@ -567,8 +594,8 @@ export default function EmployeeDashboard() {
                 onClick={attendanceStatus === 'checked-in' ? handleCheckOut : handleCheckIn}
                 disabled={isLoading}
                 className={`w-[132px] py-2 px-3 rounded-lg text-sm font-medium mb-2 transition-colors ${attendanceStatus === 'checked-in'
-                    ? 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
-                    : 'bg-white text-[#52F44A] border border-[#52F44A] hover:bg-green-50'
+                  ? 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                  : 'bg-white text-[#52F44A] border border-[#52F44A] hover:bg-green-50'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isLoading ? (
@@ -680,10 +707,10 @@ export default function EmployeeDashboard() {
                             <div className="text-xs font-medium mb-1">{item.date.toString().padStart(2, '0')}</div>
                             <div
                               className={`text-xs px-1 py-1 rounded ${item.status === 'Present'
-                                  ? 'bg-green-100 text-green-600'
-                                  : item.status === 'Absent'
-                                    ? 'bg-red-100 text-red-600'
-                                    : 'bg-gray-100 text-gray-500'
+                                ? 'bg-green-100 text-green-600'
+                                : item.status === 'Absent'
+                                  ? 'bg-red-100 text-red-600'
+                                  : 'bg-gray-100 text-gray-500'
                                 }`}
                             >
                               {item.status}

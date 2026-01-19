@@ -46,7 +46,7 @@ export default function AssignTaskPage() {
     { name: "Assigned Task", href: "/dashboard/assignedTask" },
   ];
 
-  // Fetch projects and tasks
+  // Fetch tasks safely
   useEffect(() => {
     const fetchTasks = async () => {
       if (!BASE_URL || !accessToken) return;
@@ -59,26 +59,25 @@ export default function AssignTaskPage() {
 
         if (!projectRes.ok) throw new Error("Failed to fetch projects");
         const projectData = await projectRes.json();
-        const projectList = projectData.results || [];
+        const projectList = Array.isArray(projectData.results) ? projectData.results : [];
 
         const allTasks: Task[] = [];
         for (const project of projectList) {
           const taskRes = await fetch(`${BASE_URL}/projects/${project.project_id}/tasks/`, {
             headers: { Authorization: `Bearer ${accessToken}` },
           });
-
           if (!taskRes.ok) continue;
 
           const taskData = await taskRes.json();
-          const taskList = taskData.results || [];
+          const taskList = Array.isArray(taskData.results) ? taskData.results : [];
 
-          const mappedTasks: Task[] = taskList.map((t: any, idx: number) => {
-            const testCases = t.description ? t.description.split("\r\n") : [];
+          taskList.forEach((t: any) => {
+            const testCases = t.description?.split(/\r?\n/).filter(Boolean) || [];
             const status1 = testCases.map(() => (t.is_completed ? "Yes" : "No"));
             const status2 = testCases.map(() => (t.status === "open" ? "Pass" : "Fail"));
 
-            return {
-              id: allTasks.length + idx + 1,
+            allTasks.push({
+              id: allTasks.length + 1,
               taskId: t.task_id,
               title: t.title || "Untitled Task",
               testCases,
@@ -88,14 +87,12 @@ export default function AssignTaskPage() {
               end: t.end_datetime || "",
               project: project.name || "",
               location: t.location || t.task_location || "All",
-              priority: "Medium",
+              priority: t.priority || "Medium",
               type: t.task_type || "Functional",
               environment: t.environment || "N/A",
               status: t.status || "Open",
-            };
+            });
           });
-
-          allTasks.push(...mappedTasks);
         }
 
         setTasks(allTasks);
@@ -118,16 +115,16 @@ export default function AssignTaskPage() {
   };
 
   const updateStatus1 = (taskId: number, caseIndex: number, value: "Yes" | "No") => {
-    setTasks(prev =>
-      prev.map(t =>
+    setTasks((prev) =>
+      prev.map((t) =>
         t.id === taskId ? { ...t, status1: t.status1.map((s, i) => (i === caseIndex ? value : s)) } : t
       )
     );
   };
 
   const updateStatus2 = (taskId: number, caseIndex: number, value: "Pass" | "Fail") => {
-    setTasks(prev =>
-      prev.map(t =>
+    setTasks((prev) =>
+      prev.map((t) =>
         t.id === taskId ? { ...t, status2: t.status2.map((s, i) => (i === caseIndex ? value : s)) } : t
       )
     );
@@ -136,21 +133,10 @@ export default function AssignTaskPage() {
   const btnClass = (active: boolean, color = "green") =>
     `${active ? (color === "green" ? "bg-green-600 text-white" : "bg-red-600 text-white") : "bg-white text-gray-700 border"} inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full border`;
 
-  // -----------------------------
-  // DELETE SELECTED FUNCTION
-  // -----------------------------
   const handleDeleteSelected = async () => {
-    if (selected.length === 0) {
-      toast.error("No task selected");
-      return;
-    }
+    if (selected.length === 0) return toast.error("No task selected");
+    if (!BASE_URL || !accessToken) return toast.error("Missing API credentials");
 
-    if (!BASE_URL || !accessToken) {
-      toast.error("Missing API credentials");
-      return;
-    }
-
-    // Confirmation
     const confirmDelete = window.confirm(
       `Are you sure you want to delete ${selected.length} selected task(s)?`
     );
@@ -158,55 +144,75 @@ export default function AssignTaskPage() {
 
     try {
       setLoading(true);
-
       const tasksToDelete = tasks.filter((t) => selected.includes(t.id));
-
       let successCount = 0;
 
-      // Delete each task individually
       for (const task of tasksToDelete) {
-        const res = await fetch(
-          `${BASE_URL}/projects/tasks/${task.taskId}/`,
-          {
+        try {
+          const res = await fetch(`${BASE_URL}/projects/tasks/${task.taskId}/`, {
             method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json().catch(() => null);
-          successCount++;
-
-          // Display message for each deleted task
-          toast.success(data?.message || `Task ${task.taskId} deleted`);
-        } else {
-          const err = await res.json().catch(() => null);
-          toast.error(err?.message || `Failed to delete ${task.taskId}`);
-        }
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          if (res.ok) successCount++;
+        } catch { }
       }
 
-      // Remove deleted tasks from state
       setTasks((prev) => prev.filter((t) => !selected.includes(t.id)));
       setSelected([]);
-
       toast.success(`${successCount} task(s) deleted successfully`);
-
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete tasks");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center text-gray-700">Loading tasks...</div>
-      </div>
-    );
+
+ const handleAssignTasks = async (userIds: string[]) => {
+  if (selected.length === 0) return toast.error("No task selected");
+  if (userIds.length === 0) return toast.error("No agents selected");
+
+  try {
+    setLoading(true);
+    const successfulTasks: number[] = [];
+
+    for (const taskLocalId of selected) {
+      const task = tasks.find((t) => t.id === taskLocalId);
+      if (!task) continue;
+
+      const response = await fetch(
+        `${BASE_URL}/projects/tasks/${task.taskId}/assign/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_ids: userIds }), 
+        }
+      );
+
+      if (response.ok) {
+        successfulTasks.push(taskLocalId);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(`Failed: ${task.title} – ${errorData.message || "Unknown error"}`);
+      }
+    }
+
+    if (successfulTasks.length > 0) {
+      toast.success(`Assigned ${successfulTasks.length} task(s) successfully!`);
+      setTasks(prev => prev.map(t => successfulTasks.includes(t.id) ? { ...t, status: "Assigned" } : t));
+      setSelected([]);
+    }
+
+    setShowModal(false);
+  } catch (err) {
+    toast.error("Network error during assignment");
+  } finally {
+    setLoading(false);
   }
+};
 
   return (
     <main className="flex flex-col px-4 sm:px-6 md:px-8 py-8 mt-2 p-6 -ml-10">
@@ -250,19 +256,20 @@ export default function AssignTaskPage() {
         <div className="flex flex-wrap gap-2 justify-end">
           <button
             onClick={() => setShowModal(true)}
-            className="px-4 py-1 rounded-2xl border border-orange-400 text-orange-500 bg-white hover:bg-orange-50 text-sm"
+            disabled={selected.length === 0 || loading}
+            className={`px-4 py-1 rounded-2xl border border-orange-400 text-orange-500 bg-white hover:bg-orange-50 text-sm ${selected.length === 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
-            Assign selected to agents
+            Assign selected ({selected.length})
           </button>
-
-          {/* DELETE BUTTON UPDATED */}
           <button
             onClick={handleDeleteSelected}
-            className="px-4 py-1 rounded-2xl border border-orange-400 text-orange-500 bg-white hover:bg-orange-50 text-sm"
+            disabled={selected.length === 0 || loading}
+            className={`px-4 py-1 rounded-2xl border border-orange-400 text-orange-500 bg-white hover:bg-orange-50 text-sm ${selected.length === 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             Delete selected
           </button>
-
         </div>
       </div>
 
@@ -276,11 +283,12 @@ export default function AssignTaskPage() {
                   type="checkbox"
                   onChange={handleSelectAll}
                   checked={selected.length === currentTasks.length && currentTasks.length > 0}
+                  disabled={loading}
                 />
               </th>
               <th className="p-2">S/N</th>
-              <th className="p-2 min-w-[120px]">Task ID</th>
-              <th className="p-2 min-w-[100px]">Title</th>
+              <th className="p-2">Task ID</th>
+              <th className="p-2">Title</th>
               <th className="p-2">Test Cases</th>
               <th className="p-2">Status 1</th>
               <th className="p-2">Status 2</th>
@@ -298,42 +306,69 @@ export default function AssignTaskPage() {
             {currentTasks.map((task, idx) => (
               <tr key={task.id} className="border-b border-gray-200 hover:bg-orange-50/40 align-top">
                 <td className="p-2">
-                  <input type="checkbox" checked={selected.includes(task.id)} onChange={() => handleSelect(task.id)} />
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(task.id)}
+                    onChange={() => handleSelect(task.id)}
+                    disabled={loading}
+                  />
                 </td>
-                <td className="p-2 text-gray-800">{(page - 1) * PAGE_SIZE + idx + 1}</td>
+                <td className="p-2">{(page - 1) * PAGE_SIZE + idx + 1}</td>
                 <td className="p-2">{task.taskId}</td>
-                <td className="p-2 font-medium text-gray-900">{task.title}</td>
-
-                <td className="p-2 align-top min-w-[450px]">
-                  <ul className="space-y-1 text-gray-700">
+                <td className="p-2 font-medium">{task.title}</td>
+                <td className="p-2 min-w-[450px]">
+                  <ul className="space-y-1">
                     {task.testCases.map((c, i) => (
-                      <li key={i} className="max-w-2xl break-words">{c}</li>
+                      <li key={i} className="max-w-2xl break-words whitespace-pre-wrap leading-tight">
+                        {c}
+                      </li>
                     ))}
                   </ul>
                 </td>
-
-                <td className="p-2 align-top">
-                  <div className="flex flex-col">
-                    {task.testCases.map((_, i) => (
-                      <div key={i} className="flex gap-1 mb-1">
-                        <button type="button" onClick={() => updateStatus1(task.id, i, "Yes")} className={btnClass(task.status1[i] === "Yes", "green")}>Yes</button>
-                        <button type="button" onClick={() => updateStatus1(task.id, i, "No")} className={btnClass(task.status1[i] === "No", "red")}>No</button>
-                      </div>
-                    ))}
-                  </div>
+                <td className="p-2">
+                  {task.testCases.map((_, i) => (
+                    <div key={i} className="flex gap-1 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => updateStatus1(task.id, i, "Yes")}
+                        className={btnClass(task.status1[i] === "Yes", "green")}
+                        disabled={loading}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateStatus1(task.id, i, "No")}
+                        className={btnClass(task.status1[i] === "No", "red")}
+                        disabled={loading}
+                      >
+                        No
+                      </button>
+                    </div>
+                  ))}
                 </td>
-
-                <td className="p-2 align-top">
-                  <div className="flex flex-col">
-                    {task.testCases.map((_, i) => (
-                      <div key={i} className="flex gap-1 mb-1">
-                        <button type="button" onClick={() => updateStatus2(task.id, i, "Pass")} className={btnClass(task.status2[i] === "Pass", "green")}>Pass</button>
-                        <button type="button" onClick={() => updateStatus2(task.id, i, "Fail")} className={btnClass(task.status2[i] === "Fail", "red")}>Fail</button>
-                      </div>
-                    ))}
-                  </div>
+                <td className="p-2">
+                  {task.testCases.map((_, i) => (
+                    <div key={i} className="flex gap-1 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => updateStatus2(task.id, i, "Pass")}
+                        className={btnClass(task.status2[i] === "Pass", "green")}
+                        disabled={loading}
+                      >
+                        Pass
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateStatus2(task.id, i, "Fail")}
+                        className={btnClass(task.status2[i] === "Fail", "red")}
+                        disabled={loading}
+                      >
+                        Fail
+                      </button>
+                    </div>
+                  ))}
                 </td>
-
                 <td className="p-2">{task.start}</td>
                 <td className="p-2">{task.end}</td>
                 <td className="p-2">{task.project}</td>
@@ -342,7 +377,12 @@ export default function AssignTaskPage() {
                 <td className="p-2">{task.type}</td>
                 <td className="p-2">{task.environment}</td>
                 <td className="p-2">
-                  <span className="px-3 py-1 rounded-full border border-green-500 text-green-500 bg-white text-xs font-semibold">
+                  <span className={`px-3 py-1 rounded-full border text-xs font-semibold ${task.status === "Assigned"
+                      ? "border-blue-500 text-blue-500 bg-blue-50"
+                      : task.status === "Completed"
+                        ? "border-green-500 text-green-500 bg-green-50"
+                        : "border-green-500 text-green-500 bg-white"
+                    }`}>
                     {task.status}
                   </span>
                 </td>
@@ -354,11 +394,20 @@ export default function AssignTaskPage() {
 
       {/* Pagination */}
       <div className="flex justify-end items-center mt-6">
-        <Pagination totalPages={totalPages} initialPage={page} onPageChange={setPage} />
+        <Pagination
+          totalPages={totalPages}
+          initialPage={page}
+          onPageChange={setPage}
+        />
       </div>
 
       {/* Modal */}
-      {showModal && <AgentAssignModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <AgentAssignModal
+          onClose={() => setShowModal(false)}
+          onAssign={handleAssignTasks}  // ← TypeScript now happy: number[] → number[]
+        />
+      )}
     </main>
   );
 }

@@ -9,10 +9,11 @@ import Sidebar from '@/components/settingsComponents/Sidebar';
 import ProfileForm from '@/components/settingsComponents/ProfileForm';
 import UserManagementTab from '@/components/settingsComponents/UserManagementTab';
 import FormCard from '@/components/settingsComponents/FormCard';
+import UserTable from '@/components/settingsComponents/UserTable';
 
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'userManagement'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'userManagement' | 'user'>('profile');
   const { refreshUser } = useAuth();
   const [showResetModal, setShowResetModal] = useState(false);
 
@@ -49,8 +50,8 @@ export default function SettingsPage() {
         <ul className="flex gap-6">
           <li
             className={`pb-3 cursor-pointer ${activeTab === 'profile'
-                ? 'text-orange-500 border-b-2 border-orange-500'
-                : 'text-gray-600 hover:text-gray-800'
+              ? 'text-orange-500 border-b-2 border-orange-500'
+              : 'text-gray-600 hover:text-gray-800'
               }`}
             onClick={() => setActiveTab('profile')}
           >
@@ -58,12 +59,21 @@ export default function SettingsPage() {
           </li>
           <li
             className={`pb-3 cursor-pointer ${activeTab === 'userManagement'
-                ? 'text-orange-500 border-b-2 border-orange-500'
-                : 'text-gray-600 hover:text-gray-800'
+              ? 'text-orange-500 border-b-2 border-orange-500'
+              : 'text-gray-600 hover:text-gray-800'
               }`}
             onClick={() => setActiveTab('userManagement')}
           >
             User Management
+          </li>
+          <li
+            className={`pb-3 cursor-pointer ${activeTab === 'user'
+              ? 'text-orange-500 border-b-2 border-orange-500'
+              : 'text-gray-600 hover:text-gray-800'
+              }`}
+            onClick={() => setActiveTab('user')}
+          >
+            User
           </li>
         </ul>
       </nav>
@@ -76,9 +86,11 @@ export default function SettingsPage() {
         </div>
 
         <section className="flex flex-col md:flex-row gap-8">
-          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          {activeTab !== 'user' && (
+            <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          )}
 
-          <article className="flex-1 w-full">
+         <article className="flex-1 w-full">
             {activeTab === 'profile' && (
               <div className="border rounded-2xl border-gray-200 p-6 h-[556px]">
                 <h3 className="text-gray-900 font-semibold mb-2">User Settings</h3>
@@ -94,6 +106,7 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'userManagement' && <UserManagementTab supervisors={supervisors} agents={agents} />}
+            {activeTab === 'user' && <UserTable />}
           </article>
         </section>
 

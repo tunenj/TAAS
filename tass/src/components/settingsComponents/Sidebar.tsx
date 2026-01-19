@@ -5,8 +5,8 @@ import { User, Users } from 'lucide-react';
 
 
 interface SidebarProps {
-  activeTab: 'profile' | 'userManagement';
-  onTabChange: (tab: 'profile' | 'userManagement') => void;
+  activeTab: 'profile' | 'userManagement' | 'user';
+  onTabChange: (tab: 'profile' | 'userManagement' | 'user') => void;
 }
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
@@ -52,6 +52,25 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               }`}
           />
           <span>User Management</span>
+        </button>
+      </div>
+      <div>
+        <p className="text-gray-700 text-sm font-medium mb-2 tracking-tight">User</p>
+        <button
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 w-full text-left group hover:shadow-sm ${activeTab === 'user'
+              ? 'bg-orange-50 border border-orange-200 text-orange-700 shadow-md'
+              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
+            }`}
+          onClick={() => onTabChange('user')}
+        >
+          <Users
+            size={18}
+            className={`transition-colors duration-200 flex-shrink-0 ${activeTab === 'user'
+                ? 'text-orange-500'
+                : 'text-gray-500 group-hover:text-gray-600'
+              }`}
+          />
+          <span>User</span>
         </button>
       </div>
     </aside>

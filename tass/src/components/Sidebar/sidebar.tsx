@@ -102,9 +102,6 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  // --------------------------
-  // LOADING SKELETON FUNCTION
-  // --------------------------
   const renderSkeleton = () => {
     return Array(6)
       .fill(0)
@@ -123,7 +120,6 @@ const Sidebar: React.FC = () => {
   useEffect(() => {
     console.log("Sidebar - User:", user);
     console.log("Sidebar - Role:", role);
-    console.log("Sidebar - Nav Items:", navItems);
   }, [user, role, navItems]);
 
   return (

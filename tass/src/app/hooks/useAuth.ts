@@ -19,66 +19,77 @@ export function useAuth(requireAuth: boolean = true) {
   const pathname = usePathname();
 
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [firstName, setFirstName] = useState<string>("");
+  const [firstName, setFirstName] = useState("");
   const [role, setRole] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [rolesList, setRolesList] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [location, setLocation] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState<Record<string, any> | null>(null);
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_BASE_URL ||
     "https://atasstaging.avetiumconsult.com/api";
 
-  // Redirect based on role
+
+  const normalizeRole = (role?: string | null) =>
+    role ? role.toUpperCase() : null;
+
+  const getStoredAccessToken = (): string | null => {
+    return (
+      Cookies.get("accessToken") ||
+      null
+    );
+  };
+
+  const getStoredRefreshToken = (): string | null => {
+    return (
+      Cookies.get("refreshToken") ||
+      null
+    );
+  };
+
   const determineRedirectPath = (userRole: string): string => {
-    if (userRole?.toUpperCase() === "ADMINISTRATOR") return "/dashboard/admin";
+    if (userRole?.toUpperCase() === "ADMINISTRATOR") {
+      return "/dashboard/admin";
+    }
     return "/dashboard/agent";
   };
 
-  // Fetch user profile
-  const fetchUserProfile = async (token: string): Promise<UserProfile | null> => {
+
+
+  const fetchUserProfile = async (
+    token: string
+  ): Promise<UserProfile | null> => {
     try {
       const res = await fetch(`${BASE_URL}/profile/me/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.status === 401 || res.status === 403) {
-        if (requireAuth) logout();
         return null;
       }
 
       const result = await res.json();
       const userData: UserProfile = result?.data;
 
-      if (!userData) {
-        if (requireAuth) logout();
-        return null;
-      }
+      if (!userData) return null;
 
       setUser(userData);
       setFirstName(userData.first_name);
+      setRole(normalizeRole(userData.role_name));
 
-      if (userData.role_name && userData.role_name.trim() !== "") {
-        setRole(userData.role_name.toUpperCase());
-      }
-
-      if (requireAuth && pathname === "/login") {
+      if (requireAuth && pathname === "/Login") {
         router.replace(determineRedirectPath(userData.role_name));
       }
 
       return userData;
     } catch (err) {
       console.error("Auth error:", err);
-      if (requireAuth) logout();
       return null;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Fetch roles list
   const fetchRoles = async (token: string) => {
     try {
       const res = await fetch(`${BASE_URL}/org/all/roles/`, {
@@ -92,21 +103,15 @@ export function useAuth(requireAuth: boolean = true) {
     }
   };
 
-  // Fetch user location
   const fetchUserLocation = async (token: string) => {
     try {
       const res = await fetch(`${BASE_URL}/profile/me/location/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!res.ok) {
-        console.error("Failed to fetch location");
-        return null;
-      }
+      if (!res.ok) return null;
 
       const result = await res.json();
       const loc = result?.data?.location;
-
       setLocation(loc);
       return loc;
     } catch (err) {
@@ -115,132 +120,112 @@ export function useAuth(requireAuth: boolean = true) {
     }
   };
 
-  // Refresh access token using refresh token
   const refreshAccessToken = async (): Promise<string | null> => {
-    const storedRefreshToken = 
-      Cookies.get("refreshToken") || 
-      Cookies.get("refresh_token") || 
-      localStorage.getItem("refreshToken");
-
-    if (!storedRefreshToken) {
-      logout();
-      return null;
-    }
+    const storedRefreshToken = getStoredRefreshToken();
+    if (!storedRefreshToken) return null;
 
     try {
-      const response = await fetch(`${BASE_URL}/auth/token/refresh/`, {
+      const res = await fetch(`${BASE_URL}/auth/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh: storedRefreshToken }),
       });
 
-      if (!response.ok) {
-        logout();
-        return null;
-      }
+      if (!res.ok) return null;
 
-      const data = await response.json();
+      const data = await res.json();
       const newAccessToken = data.access;
+      if (!newAccessToken) return null;
 
-      if (newAccessToken) {
-        setAccessToken(newAccessToken);
-        Cookies.set("accessToken", newAccessToken, { expires: 1 });
-        localStorage.setItem("accessToken", newAccessToken);
-        
-        // Also store as access_token for compatibility
-        Cookies.set("access_token", newAccessToken, { expires: 1 });
-        
-        return newAccessToken;
-      }
-      
-      logout();
-      return null;
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      logout();
+      setAccessToken(newAccessToken);
+      Cookies.set("accessToken", newAccessToken, { expires: 1 });
+
+      return newAccessToken;
+    } catch (err) {
+      console.error("Token refresh error:", err);
       return null;
     }
   };
 
-  // Refresh user profile + location
-  const refreshUser = async (): Promise<UserProfile | null> => {
-    let token =
-      Cookies.get("accessToken") ||
-      Cookies.get("access_token") ||
-      localStorage.getItem("accessToken");
 
-    // If no access token, try to refresh
+  const refreshUser = async (): Promise<UserProfile | null> => {
+    let token = getStoredAccessToken();
+
     if (!token) {
       token = await refreshAccessToken();
-      if (!token) return null;
+      if (!token) {
+        if (requireAuth) logout();
+        return null;
+      }
     }
 
     setAccessToken(token);
 
     try {
-      await fetchRoles(token);
-      const userData = await fetchUserProfile(token);
+      const [userData] = await Promise.all([
+        fetchUserProfile(token),
+        fetchRoles(token),
+        fetchUserLocation(token),
+      ]);
 
-      if (userData?.role_name) setRole(userData.role_name.toUpperCase());
-
-      await fetchUserLocation(token);
-
-      return userData || null;
+      if (!userData && requireAuth) logout();
+      return userData;
     } catch (err) {
       console.error("Refresh user error:", err);
       return null;
     }
   };
 
-  // Set auth after login or verification
-  const setAuth = (userData: UserProfile, token: string, refreshToken?: string) => {
+  const setAuth = (
+    userData: UserProfile,
+    token: string,
+    refreshToken?: string
+  ) => {
     setUser(userData);
     setFirstName(userData.first_name);
-    setRole(userData.role_name.toUpperCase());
+    setRole(normalizeRole(userData.role_name));
     setAccessToken(token);
 
-    // Store access token
     Cookies.set("accessToken", token, { expires: 1 });
-    localStorage.setItem("accessToken", token);
-    Cookies.set("access_token", token, { expires: 1 }); // For compatibility
 
-    // Store refresh token if provided
     if (refreshToken) {
       setRefreshToken(refreshToken);
       Cookies.set("refreshToken", refreshToken, { expires: 7 });
-      localStorage.setItem("refreshToken", refreshToken);
-      Cookies.set("refresh_token", refreshToken, { expires: 7 }); // For compatibility
     }
 
-    // Store user data
     Cookies.set("userData", JSON.stringify(userData), { expires: 7 });
-    localStorage.setItem("userData", JSON.stringify(userData));
-
-    Cookies.set("role", userData.role_name.toUpperCase(), { expires: 7 });
-    localStorage.setItem("role", userData.role_name.toUpperCase());
+    Cookies.set("role", normalizeRole(userData.role_name) || "", { expires: 7 });
   };
 
-  // Clear all auth data
-  const clearAuthData = () => {
-    // Clear all auth-related cookies
-    const authCookies = [
-      "accessToken", "access_token", 
-      "refreshToken", "refresh_token",
-      "userData", "role"
-    ];
-    
-    authCookies.forEach(cookie => {
-      Cookies.remove(cookie);
-      Cookies.remove(cookie, { path: "/" });
+
+
+  const clearCookies = () => {
+    [
+      "accessToken",
+      "access_token",
+      "refreshToken",
+      "refresh_token",
+      "userData",
+      "role",
+    ].forEach((c) => {
+      Cookies.remove(c);
+      Cookies.remove(c, { path: "/" });
     });
+  };
 
-    // Clear localStorage
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userData");
-    localStorage.removeItem("role");
+  const clearStorage = () => {
+    [
+      "attendanceStatus",
+      "checkInTime",
+      "lastResetDate",
+    ].forEach((key) => localStorage.removeItem(key));
+  };
 
-    // Reset state
+
+  const clearAuthData = () => {
+    clearCookies();
+    clearStorage();
+
     setUser(null);
     setFirstName("");
     setRole(null);
@@ -250,60 +235,60 @@ export function useAuth(requireAuth: boolean = true) {
     setLocation(null);
   };
 
-  // Logout
   const logout = () => {
     clearAuthData();
     router.replace("/login");
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
-  // Get current auth state
-  const isAuthenticated = () => {
-    return !!accessToken && !!user;
-  };
 
-  // Get user initials
+  const isAuthenticated = () => !!accessToken && !!user;
+
   const getUserInitials = (): string => {
     if (!user) return "U";
-    const first = user.first_name?.[0] || "";
-    const last = user.last_name?.[0] || "";
-    return (first + last).toUpperCase() || "U";
+    return (
+      (user.first_name?.[0] || "") +
+      (user.last_name?.[0] || "")
+    ).toUpperCase();
   };
 
-  // Check if user has specific role
-  const hasRole = (checkRole: string): boolean => {
-    return role?.toUpperCase() === checkRole.toUpperCase();
-  };
+  const hasRole = (checkRole: string): boolean =>
+    role?.toUpperCase() === checkRole.toUpperCase();
 
-  // Check if user has any of the given roles
-  const hasAnyRole = (checkRoles: string[]): boolean => {
-    if (!role) return false;
-    return checkRoles.some(r => r.toUpperCase() === role.toUpperCase());
-  };
+  const hasAnyRole = (checkRoles: string[]): boolean =>
+    !!role && checkRoles.some((r) => r.toUpperCase() === role.toUpperCase());
 
-  // On mount, check token
+  /* =========================
+     Init
+  ========================== */
+
   useEffect(() => {
-    const token =
-      Cookies.get("accessToken") ||
-      Cookies.get("access_token") ||
-      localStorage.getItem("accessToken");
+    const initAuth = async () => {
+      setLoading(true);
 
-    if (!token) {
-      if (requireAuth) router.replace("/login");
+      const token = getStoredAccessToken();
+      if (!token) {
+        if (requireAuth) router.replace("/login");
+        setLoading(false);
+        return;
+      }
+
+      setAccessToken(token);
+
+      const userData = await Promise.all([
+        fetchUserProfile(token),
+        fetchRoles(token),
+        fetchUserLocation(token),
+      ]);
+
+      if (!userData[0] && requireAuth) logout();
+
       setLoading(false);
-      return;
-    }
+    };
 
-    setAccessToken(token);
-    fetchUserProfile(token);
-    fetchRoles(token);
-    fetchUserLocation(token);
+    initAuth();
   }, [pathname]);
 
   return {
-    // State
     user,
     firstName,
     role,
@@ -313,8 +298,6 @@ export function useAuth(requireAuth: boolean = true) {
     loading,
     location,
     BASE_URL,
-    
-    // Functions
     logout,
     refreshUser,
     setAuth,
@@ -326,9 +309,8 @@ export function useAuth(requireAuth: boolean = true) {
     hasRole,
     hasAnyRole,
     clearAuthData,
-    
     get roleName() {
       return role;
-    }
+    },
   };
 }

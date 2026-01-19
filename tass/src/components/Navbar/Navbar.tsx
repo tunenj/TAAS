@@ -42,7 +42,7 @@ export default function Navbar() {
                             Register
                         </button>
                     </Link>
-                    <Link href="/Login">
+                    <Link href="/login">
                         <button
                             className="bg-[#E95D28] text-white rounded-full px-5 py-1 text-[13px] font-medium transition hover:opacity-90 cursor-pointer"
                             style={{ height: 30, minWidth: 75 }}
@@ -91,7 +91,7 @@ export default function Navbar() {
                                 Register
                             </button>
                         </Link>
-                        <Link href="/Login" onClick={() => setMenuOpen(false)}>
+                        <Link href="/login" onClick={() => setMenuOpen(false)}>
                             <button
                                 className="bg-[#E95D28] text-white rounded-full px-4 py-2 text-[14px] font-medium"
                                 style={{ minWidth: 75 }}

@@ -7,6 +7,7 @@ import { Upload } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { toast, Toaster } from "react-hot-toast";
 
+
 const priorities = ["High", "Medium", "Low"];
 const projects = ["1", "2", "3"]; // Replace with actual project IDs
 const environments = ["chrome", "firefox", "Edge"];
@@ -15,7 +16,7 @@ const task_type = ["Functionality", "Performance", "Security"];
 export default function CreateTaskPage() {
   const pathname = usePathname();
   const router = useRouter();
-  const { accessToken, BASE_URL } = useAuth(); 
+  const { accessToken, BASE_URL } = useAuth();
 
   const tabs = [
     { name: "Create Task", href: "/dashboard/createTask" },
@@ -44,8 +45,19 @@ export default function CreateTaskPage() {
 
     if (name === "upload" && files?.[0]) {
       const file = files[0];
-      if (file.type !== "text/csv") {
-        toast.error("Only CSV files are allowed!");
+      const allowedMimeTypes = [
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+
+      const allowedExtensions = ["csv", "xlsx"];
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
+      if (
+        !allowedMimeTypes.includes(file.type) &&
+        !allowedExtensions.includes(fileExtension || "")
+      ) {
+        toast.error("Only CSV or Excel (.xlsx) files are allowed.");
         return;
       }
 
@@ -54,21 +66,48 @@ export default function CreateTaskPage() {
         upload: file,
       }));
 
-      // Read CSV content to populate Test Script and Expected Result
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const text = event.target?.result as string;
-        const rows = text.split("\n").map((row) => row.split(","));
-        const testScript = rows.map((r) => r[0] || "").join("\n");
-        const expectedResult = rows.map((r) => r[1] || "").join("\n");
-        setForm((prev) => ({
-          ...prev,
-          testScript,
-          expectedResult,
-        }));
-      };
-      reader.readAsText(file);
-      return;
+      // Handle CSV separately
+      if (fileExtension === "csv") {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const text = event.target?.result as string;
+          const rows = text.split("\n").map((row) => row.split(","));
+          const testScript = rows.map((r) => r[0] || "").join("\n");
+          const expectedResult = rows.map((r) => r[1] || "").join("\n");
+          setForm((prev) => ({
+            ...prev,
+            testScript,
+            expectedResult,
+          }));
+        };
+        reader.readAsText(file);
+        return;
+      }
+
+      // Handle XLSX safely
+      if (fileExtension === "xlsx") {
+        import("xlsx").then((XLSX) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const data = e.target?.result as ArrayBuffer;
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            // Use defval to avoid undefined cells and remove null characters
+            const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" } as any) as string[][];
+            const testScript = json.map((r) => r[0].toString().replace(/\0/g, "")).join("\n");
+            const expectedResult = json.map((r) => r[1].toString().replace(/\0/g, "")).join("\n");
+
+            setForm((prev) => ({
+              ...prev,
+              testScript,
+              expectedResult,
+            }));
+          };
+          reader.readAsArrayBuffer(file);
+        });
+        return;
+      }
     }
 
     setForm((prev) => ({
@@ -107,7 +146,7 @@ export default function CreateTaskPage() {
       ])
     );
 
-    // Test scripts CSV file
+    // Test scripts CSV/XLSX file
     if (form.upload) {
       fd.append("test_scripts", form.upload);
       fd.append("expected_scripts", form.upload);
@@ -167,11 +206,10 @@ export default function CreateTaskPage() {
             <Link
               key={tab.name}
               href={tab.href}
-              className={`px-3 sm:px-4 py-2 focus:outline-none ${
-                isActive
-                  ? "text-orange-500 border-b-2 border-orange-500"
-                  : "text-gray-500 hover:text-orange-500"
-              }`}
+              className={`px-3 sm:px-4 py-2 focus:outline-none ${isActive
+                ? "text-orange-500 border-b-2 border-orange-500"
+                : "text-gray-500 hover:text-orange-500"
+                }`}
             >
               {tab.name}
             </Link>
@@ -257,7 +295,7 @@ export default function CreateTaskPage() {
             <label className="block text-gray-700 mb-1 font-semibold text-sm">
               Task Type
             </label>
-             <select
+            <select
               name="taskType"
               value={form.taskType}
               onChange={handleInput}
@@ -328,7 +366,7 @@ export default function CreateTaskPage() {
 
         <div>
           <label className="block text-gray-700 text-sm font-semibold mb-2">
-            Upload Test Scripts (CSV only)
+            Upload Test Scripts
           </label>
           <div className="flex flex-col items-start mt-2">
             <label
@@ -339,12 +377,12 @@ export default function CreateTaskPage() {
                 size={16}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"
               />
-              Upload CSV
+              Upload
               <input
                 id="file-upload"
                 type="file"
                 name="upload"
-                accept=".csv"
+                accept=".csv,.xlsx"
                 onChange={handleInput}
                 className="hidden"
               />

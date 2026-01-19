@@ -60,12 +60,12 @@ export default function OrganizationRegistrationLink() {
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg w-full md:w-1/2">
-      <h2 className="text-xl font-semibold mb-4">
+    <div className="p-6 bg-white rounded-lg shadow-lg w-full md:w-1/2 mt-2">
+      <h2 className="text-lg font-semibold mb-1">
         Organization Registration Link
       </h2>
 
-      <p className="text-black mb-4">
+      <p className="text-black mb-1">
         Generate a unique registration link and share it with customers or team members.
       </p>
 
