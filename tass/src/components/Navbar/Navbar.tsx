@@ -9,7 +9,7 @@ export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 w-full z-50 bg-[#E95D28] shadow-sm border-b border-[#e0e0e0]">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-[#E95D28] shadow-sm border-[#e0e0e0]">
             <div className="max-w-[1600px] mx-auto flex items-center justify-between px-3 sm:px-8 h-[52px]">
                 {/* Left: Logo and nav links */}
                 <div className="flex items-center space-x-7">

@@ -29,7 +29,7 @@ export function useAuth(requireAuth: boolean = true) {
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_BASE_URL ||
-    "https://atasstaging.avetiumconsult.com/api";
+    "https://atasstaging.avetiumconsult.com/api/v1";
 
 
   const normalizeRole = (role?: string | null) =>

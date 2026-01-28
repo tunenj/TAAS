@@ -5,26 +5,37 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 
+/* ================= TYPES ================= */
+
 type Agent = {
-  id: number;           
-  userId: string;       
+  id: number;
+  userId: string;
   name: string;
   email: string;
   avatar: string;
 };
 
-const AgentAssignModal = ({
+type AgentAssignModalProps = {
+  onClose: () => void;
+  onAssign?: (userIds: string[]) => Promise<string | undefined>;
+  taskLocation: string;
+};
+
+/* ================= COMPONENT ================= */
+
+const AgentAssignModal: React.FC<AgentAssignModalProps> = ({
   onClose,
   onAssign,
-}: {
-  onClose: () => void;
-  onAssign?: (userIds: string[]) => void;  // ← string[]
+  taskLocation = "", // ✅ FIX: default value
 }) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgents, setSelectedAgents] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+
   const { BASE_URL, accessToken } = useAuth();
+
+  /* ================= FETCH AGENTS ================= */
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -47,7 +58,7 @@ const AgentAssignModal = ({
         const mappedAgents: Agent[] = data.results.map(
           (user: any, index: number) => ({
             id: index,
-            userId: user.id,  // ← Keep as string exactly as received
+            userId: user.id,
             name:
               `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
               user.username ||
@@ -58,7 +69,6 @@ const AgentAssignModal = ({
         );
 
         setAgents(mappedAgents);
-        console.log("Fetched agents:", mappedAgents.map(a => ({name: a.name, userId: a.userId})));
       } catch (error) {
         console.error("Error fetching agents:", error);
       } finally {
@@ -68,6 +78,8 @@ const AgentAssignModal = ({
 
     fetchAgents();
   }, [BASE_URL, accessToken]);
+
+  /* ================= HANDLERS ================= */
 
   const toggleSelect = (id: number) => {
     setSelectedAgents((prev) =>
@@ -85,35 +97,38 @@ const AgentAssignModal = ({
     }
   };
 
-  const handleAssignClick = () => {
+  const handleAssignClick = async () => {
     if (selectedAgents.length === 0) {
       alert("Please select at least one agent");
       return;
     }
 
     const selectedUserIds: string[] = selectedAgents
-      .map((id) => {
-        const agent = agents.find((a) => a.id === id);
-        return agent?.userId || null;
-      })
-      .filter((id): id is string => id !== null);
+      .map((id) => agents.find((a) => a.id === id)?.userId)
+      .filter((id): id is string => Boolean(id));
 
     if (selectedUserIds.length === 0) {
-      alert("No agents selected (internal error)");
+      alert("No agents selected");
       return;
     }
 
-    console.log("Assigning with string user IDs:", selectedUserIds);
-
-    onAssign?.(selectedUserIds);
-    onClose();
+    try {
+      await onAssign?.(selectedUserIds);
+      onClose();
+    } catch (error) {
+      console.error("Assignment failed:", error);
+    }
   };
+
+  /* ================= FILTER ================= */
 
   const filteredAgents = agents.filter(
     (agent) =>
       agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       agent.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  /* ================= UI ================= */
 
   return (
     <div className="absolute left-100 bg-white bg-opacity-40 flex shadow-md justify-center items-center z-50 mt-10">
@@ -125,10 +140,16 @@ const AgentAssignModal = ({
           <X size={18} />
         </button>
 
+        <h2 className="text-xs text-gray-500 mb-2">
+          Task Location:{" "}
+          <span className="font-medium">{taskLocation}</span>
+        </h2>
+
         <div className="flex justify-between items-center mb-3 pr-6">
           <h2 className="text-gray-800 font-semibold text-sm">
             List of Agents ({agents.length})
           </h2>
+
           <input
             type="text"
             placeholder="Search for Agents"
@@ -141,7 +162,9 @@ const AgentAssignModal = ({
         <div className="flex items-center gap-2 mb-2">
           <input
             type="checkbox"
-            checked={agents.length > 0 && selectedAgents.length === agents.length}
+            checked={
+              agents.length > 0 && selectedAgents.length === agents.length
+            }
             onChange={selectAll}
             className="accent-orange-500 cursor-pointer"
           />
@@ -151,11 +174,17 @@ const AgentAssignModal = ({
         </div>
 
         <div className="overflow-y-auto flex-1 pr-2">
-          {loading && <p className="text-center py-4 text-gray-500">Loading agents...</p>}
+          {loading && (
+            <p className="text-center py-4 text-gray-500">
+              Loading agents...
+            </p>
+          )}
 
           {!loading && filteredAgents.length === 0 && (
             <p className="text-center py-4 text-gray-500">
-              {searchTerm ? "No agents match your search" : "No agents found"}
+              {searchTerm
+                ? "No agents match your search"
+                : "No agents found"}
             </p>
           )}
 
@@ -180,28 +209,36 @@ const AgentAssignModal = ({
               />
 
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">{agent.name}</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {agent.name}
+                </p>
                 <p className="text-xs text-gray-500">{agent.email}</p>
-                <p className="text-xs text-gray-400 mt-1">ID: {agent.userId}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  ID: {agent.userId}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
         <div className="flex justify-between items-center mt-4">
-          <div className="text-left">
-            <span className="text-sm text-gray-600 block">
-              {selectedAgents.length} agent(s) selected
-            </span>
-          </div>
+          <span className="text-sm text-gray-600">
+            {selectedAgents.length} agent(s) selected
+          </span>
+
           <button
             onClick={handleAssignClick}
             disabled={selectedAgents.length === 0}
             className={`bg-orange-500 text-white text-sm px-6 py-1.5 rounded hover:bg-orange-600 ${
-              selectedAgents.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+              selectedAgents.length === 0
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
           >
-            Assign {selectedAgents.length > 0 ? `(${selectedAgents.length})` : ""}
+            Assign
+            {selectedAgents.length > 0
+              ? ` (${selectedAgents.length})`
+              : ""}
           </button>
         </div>
       </div>

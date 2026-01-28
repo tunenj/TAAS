@@ -1,17 +1,30 @@
-import Sidebar from "@/components/Sidebar/sidebar";
-import Topbar from "@/components/Topbar/Topbar";
+// app/dashboard/layout.tsx
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+import Topbar from "@/components/Topbar/Topbar";
+import Sidebar from "@/components/Sidebar/sidebar";
+
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
     return (
-        <div className="min-h-screen bg-gray-50 md:pl-64">
-            <Sidebar />
-            <div className="flex flex-col min-h-screen">
+        <div className="min-h-screen bg-gray-50 top-3">
+            {/* TOPBAR */}
+            <header className="fixed top-0 left-0 right-0 h-16 bg-white z-45">
                 <Topbar />
-                {/* REMOVE overflow-y-auto here */}
-                <main className="flex-1 p-6">
-                    {children}
-                </main>
-            </div>
+            </header>
+
+            {/* SIDEBAR */}
+            <aside className="md:fixed md:-top-1.5 pt-2.5 md:left-0 md:bottom-0 md:w-64 md:bg-white md:z-40">
+                <Sidebar />
+            </aside>
+
+            {/* MAIN CONTENT */}
+            <main className="pt-12 md:pl-64 min-h-screen">
+                {children}
+            </main>
         </div>
+
     );
 }

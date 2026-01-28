@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import { Search, Filter, Flag, Folder } from "lucide-react";
+import { useAuth } from '@/app/hooks/useAuth';
 
 interface KpiProps {
   title: string;
@@ -47,17 +47,65 @@ const DueItem = ({ title, due, icon }: { title: string; due: string; icon: strin
 );
 
 const DashboardPage = () => {
-  return (
-    <div className="p-4 md:p-6 space-y-6 text-gray-800 mt-4 md:-ml-8">
+  const { user, location, loading } = useAuth();
+  
+  // Get user's full name from auth
+  const userName = user ? `${user.first_name} ${user.last_name}` : 'Triston';
 
-      {/* Header */}
-      <div className="text-center md:text-left">
-        <h1 className="text-base md:text-lg text-black font-semibold">
-          Hey Triston –{' '}
-          <span className="text-gray-500 text-sm md:text-lg">
-            here’s what your dashboard looks like today!
-          </span>
-        </h1>
+  return (
+    <div className="p-4 md:p-6 space-y-6 text-gray-800 mt-4 md:-ml-5 px-6">
+      {/* Header with Location */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="text-center md:text-left">
+          <h1 className="text-base md:text-lg text-black font-semibold">
+            Hey {userName} –{' '}
+            <span className="text-gray-500 text-sm md:text-lg">
+              here's what your dashboard looks like today!
+            </span>
+          </h1>
+        </div>
+        
+        {/* Location display opposite the name */}
+        {!loading && location && (
+          <div className="bg-white px-4 py-2 rounded-lg shadow-md shadow-orange-500 border-orange-500 self-end md:self-auto">
+            <div className="flex items-center gap-6">
+              {/* Coordinates */}
+              <div className="text-right">
+                <div className="text-xs text-gray-500">Coordinates</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {location.latitude}, {location.longitude}
+                </div>
+              </div>
+              
+              {/* Divider */}
+              <div className="h-6 w-px bg-gray-300"></div>
+              
+              {/* State */}
+              <div className="text-right">
+                <div className="text-xs text-gray-500">State</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {location.state}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {loading && (
+          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 self-end md:self-auto">
+            <div className="flex items-center gap-2">
+              <div className="animate-pulse h-4 w-24 bg-gray-200 rounded"></div>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        )}
+        
+        {!loading && !location && (
+          <div className="bg-yellow-50 px-4 py-2 rounded-lg shadow-sm border border-yellow-200 self-end md:self-auto">
+            <div className="text-sm text-yellow-600">Location data not available</div>
+          </div>
+        )}
       </div>
 
       {/* KPI Section */}

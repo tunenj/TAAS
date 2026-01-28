@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Menu, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/app/hooks/useAuth";
 
@@ -16,7 +16,7 @@ interface NavItem {
 }
 
 const Sidebar: React.FC = () => {
-  const { user, role, logout } = useAuth(); // Added role from useAuth
+  const { user, role, logout } = useAuth();
   const path = usePathname();
   const router = useRouter();
 
@@ -25,15 +25,14 @@ const Sidebar: React.FC = () => {
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_BASE_URL ||
-    "https://abasstaging.avetiumconsult.com/api";
+    "https://abasstaging.avetiumconsult.com/api/v1";
 
   const toggleSubMenu = (name: string) => {
     setOpenMenu(openMenu === name ? null : name);
   };
 
-  // --------------------------
-  // NAV ITEMS
-  // --------------------------
+  /* ================= NAV ITEMS ================= */
+
   const adminNavItems: NavItem[] = [
     { name: "Home", path: "/dashboard/admin", icon: "/icons/home.png" },
     { name: "Attendance", path: "/dashboard/adminAttendance", icon: "/icons/attendance.png" },
@@ -62,29 +61,10 @@ const Sidebar: React.FC = () => {
     { name: "Settings", path: "/dashboard/agentSettings", icon: "/icons/setting.png" },
   ];
 
-  // Determine nav items based on role
-  const getNavItems = () => {
-    if (!user || !role) return [];
-    
-    // Use the role from useAuth (which should be "ADMINISTRATOR" or "AGENT")
-    if (role === "ADMINISTRATOR") {
-      return adminNavItems;
-    } else {
-      return agentNavItems;
-    }
-  };
+  const navItems = role === "ADMINISTRATOR" ? adminNavItems : agentNavItems;
 
-  const navItems = getNavItems();
+  /* ================= LOGOUT ================= */
 
-  const logoutItem = {
-    name: "Logout",
-    path: "/logout",
-    icon: "/icons/logout.png",
-  };
-
-  // --------------------------
-  // LOGOUT HANDLER
-  // --------------------------
   const handleLogout = async () => {
     toast.loading("Logging out...");
     try {
@@ -102,110 +82,110 @@ const Sidebar: React.FC = () => {
     }
   };
 
-  const renderSkeleton = () => {
-    return Array(6)
-      .fill(0)
-      .map((_, idx) => (
-        <div
-          key={idx}
-          className="flex items-center gap-3 h-11 w-full px-4 rounded-md bg-gray-200 animate-pulse mb-2"
-        >
-          <div className="w-5 h-5 bg-gray-300 rounded" />
-          <div className="h-3 w-24 bg-gray-300 rounded" />
-        </div>
-      ));
+  /* ================= AUTO-CLOSE ON DESKTOP ================= */
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  /* ================= CLOSE ON NAV CLICK (MOBILE) ================= */
+  const handleNavClick = () => {
+    if (window.innerWidth < 768) {
+      setIsOpen(false);
+    }
   };
 
-  // Debug: Log user and role for verification
-  useEffect(() => {
-    console.log("Sidebar - User:", user);
-    console.log("Sidebar - Role:", role);
-  }, [user, role, navItems]);
+  /* ================= UI ================= */
 
   return (
     <>
-      {/* Overlay for MOBILE */}
+      {/* ✅ MOBILE HAMBURGER - Improved from first code */}
+      <div className="md:hidden fixed top-4 left-4 z-50 mt-1">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="bg-[#F97316] text-white p-2 rounded flex items-center gap-1"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="hidden">Menu</span>
+        </button>
+      </div>
+
+      {/* ✅ MOBILE OVERLAY - Improved from first code */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-20 z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* ✅ SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-full w-56 bg-[#FDF2EE] flex flex-col border-r border-gray-200
-        transform transition-transform duration-300
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0`}
+        className={`fixed top-0 left-0 z-50 h-full w-56 bg-[#FDF2EE] flex flex-col border-gray-200 transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static`}
       >
         {/* HEADER */}
-        <div className="h-20 flex items-center px-4">
-          <span className={`text-lg font-bold text-gray-600`}>Avetium</span>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
+          {/* CLOSE BUTTON (MOBILE) */}
+          <button
+            className="md:hidden"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="w-5 h-5 text-gray-700" />
+          </button>
         </div>
 
         {/* NAV */}
-        <nav className="flex flex-col font-medium ml-4 overflow-y-auto pb-6 pt-2 flex-grow">
-          {user && role ? (
+        <nav className="flex flex-col font-medium ml-4 overflow-y-auto pb-6 flex-grow">
+          {user &&
             navItems.map((item) => {
               const isActive = path === item.path;
 
-              const handleClick = () => {
-                if (item.children) {
-                  toggleSubMenu(item.name);
-                } else {
-                  router.push(item.path);
-                  setIsOpen(false);
-                }
-              };
-
               return (
-                <div key={item.name} className="w-full">
-                  {/* MAIN ITEM */}
+                <div key={item.name}>
                   <div
-                    className={`flex items-center justify-between h-11 w-full px-4 cursor-pointer rounded-md transition
-                      ${
-                        isActive
-                          ? "bg-[#F97316]/10 text-[#F97316]"
-                          : "hover:bg-[#F97316]/10 text-gray-600"
+                    onClick={() => {
+                      if (item.children) {
+                        toggleSubMenu(item.name);
+                      } else {
+                        router.push(item.path);
+                        handleNavClick(); // Auto-close on mobile
+                      }
+                    }}
+                    className={`flex items-center justify-between h-11 px-4 rounded-md cursor-pointer
+                      ${isActive
+                        ? "bg-[#F97316]/10 text-[#F97316]"
+                        : "hover:bg-[#F97316]/10 text-gray-600"
                       }`}
-                    onClick={handleClick}
                   >
                     <div className="flex items-center gap-3">
-                      <Image
-                        src={item.icon}
-                        alt={`${item.name} icon`}
-                        width={20}
-                        height={20}
-                        className="object-contain"
-                        style={{
-                          filter: isActive
-                            ? "invert(49%) sepia(96%) saturate(1651%) hue-rotate(351deg) brightness(97%) contrast(101%)"
-                            : "none",
-                        }}
-                      />
-                      <span className="text-sm leading-[150%]">{item.name}</span>
+                      <Image src={item.icon} alt={item.name} width={20} height={20} />
+                      <span className="text-sm">{item.name}</span>
                     </div>
 
                     {item.children &&
                       (openMenu === item.name ? (
-                        <ChevronUp className="w-4 h-4 text-gray-500" />
+                        <ChevronUp className="w-4 h-4" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-500" />
+                        <ChevronDown className="w-4 h-4" />
                       ))}
                   </div>
 
-                  {/* SUBMENU */}
                   {item.children && openMenu === item.name && (
                     <ul className="ml-10 mt-2 space-y-1">
                       {item.children.map((child) => (
                         <li key={child.name}>
                           <Link
                             href={child.path}
-                            className={`block text-sm py-1 hover:text-[#F97316] ${
-                              path === child.path ? "text-[#F97316]" : "text-gray-600"
-                            }`}
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleNavClick} // Auto-close on mobile
+                            className={`block text-sm py-1 ${path === child.path
+                                ? "text-[#F97316]"
+                                : "text-gray-600"
+                              }`}
                           >
                             {child.name}
                           </Link>
@@ -215,27 +195,21 @@ const Sidebar: React.FC = () => {
                   )}
                 </div>
               );
-            })
-          ) : (
-            renderSkeleton()
-          )}
+            })}
         </nav>
 
         {/* LOGOUT */}
         {user && (
-          <div className="mt-auto mb-6 ml-4">
+          <div className="mb-6 ml-4">
             <div
-              className="flex items-center gap-3 h-11 w-full px-4 cursor-pointer hover:bg-[#F97316]/10 text-gray-600 rounded-md"
-              onClick={handleLogout}
+              onClick={() => {
+                handleLogout();
+                handleNavClick(); // Auto-close on mobile
+              }}
+              className="flex items-center gap-3 h-11 px-4 cursor-pointer hover:bg-[#F97316]/10 rounded-md text-gray-600"
             >
-              <Image
-                src={logoutItem.icon}
-                alt="Logout icon"
-                width={20}
-                height={20}
-                className="object-contain"
-              />
-              <span className="text-sm leading-[150%]">Logout</span>
+              <Image src="/icons/logout.png" alt="Logout" width={20} height={20} />
+              <span className="text-sm">Logout</span>
             </div>
           </div>
         )}

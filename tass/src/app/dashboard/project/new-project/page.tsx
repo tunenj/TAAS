@@ -12,6 +12,7 @@ interface ProjectForm {
   priority: "low" | "medium" | "high";
   start_datetime: string;
   end_datetime: string;
+  status: "open" | "close";
 }
 
 const NewProjectForm: React.FC = () => {
@@ -21,6 +22,7 @@ const NewProjectForm: React.FC = () => {
     priority: "medium",
     start_datetime: "",
     end_datetime: "",
+    status: "open",
   });
 
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,7 @@ const NewProjectForm: React.FC = () => {
           name: form.name,
           description: form.description,
           priority: form.priority,
+          status: form.status,
           start_datetime: form.start_datetime
             ? form.start_datetime.split("T")[0]
             : null,
@@ -87,6 +90,7 @@ const NewProjectForm: React.FC = () => {
       priority: "medium",
       start_datetime: "",
       end_datetime: "",
+      status: "open",
     });
   };
 
@@ -172,22 +176,40 @@ const NewProjectForm: React.FC = () => {
           </div>
         </div>
 
-        {/* Priority */}
-        <div className="flex flex-col sm:w-1/3">
-          <label htmlFor="priority" className="text-gray-700 font-medium mb-2">
-            Priority
-          </label>
-          <select
-            id="priority"
-            name="priority"
-            value={form.priority}
-            onChange={handleChange}
-            className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+        {/* Priority & Status */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="flex flex-col">
+            <label htmlFor="priority" className="text-gray-700 font-medium mb-2">
+              Priority
+            </label>
+            <select
+              id="priority"
+              name="priority"
+              value={form.priority}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="status" className="text-gray-700 font-medium mb-2">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
+            >
+              <option value="open">Open</option>
+              <option value="close">Close</option>
+            </select>
+          </div>
         </div>
 
         {/* Buttons */}

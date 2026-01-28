@@ -23,7 +23,7 @@ export default function VerifyEmail() {
       setStatus("Verifying your email, please wait...");
       try {
         const response = await fetch(
-          "https://atasstaging.avetiumconsult.com/api/auth/verify-email/token/",
+          "https://atasstaging.avetiumconsult.com/api/v1/auth/verify-email/token/",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -59,7 +59,7 @@ export default function VerifyEmail() {
   }, [token]);
 
   const handleLogin = () => {
-    router.push("/Login"); // Redirect to your login page
+    router.push("/login"); // Redirect to your login page
   };
 
   return (
