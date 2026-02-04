@@ -22,19 +22,33 @@ interface TestCase {
   description: string;
 }
 
+interface TestData {
+  description: string;
+}
+
+interface ExpectedTestCase {
+  description: string;
+  expected_text: string;
+}
+
+// ✅ NEW TaskData interface matching the updated payload
 interface TaskData {
   title: string;
   location: string;
   description: string;
-  status: string;
-  is_completed: boolean;
+  status: "open" | string;
+  status_1: string;
+  status_2: string;
   start_datetime: string;
   end_datetime: string;
-  is_assigned: boolean;
-  task_type: string;
-  environment: string;
+  task_type: "functionality" | string;
+  environment: "chrome" | string;
+  version_build: string;
+  requirement_id: string;
+  setup_steps: string;
   test_cases: TestCase[];
-  expected_test_cases: TestCase[];
+  test_data: TestData[];
+  expected_test_cases: ExpectedTestCase[];
 }
 
 // ✅ TRANSFERRED LOCATION HANDLING FUNCTIONS
@@ -89,6 +103,9 @@ export default function CreateTaskPage() {
     description: "",
     testScript: "",
     expectedResult: "",
+    versionBuild: "",
+    requirementId: "",
+    setupSteps: "",
     upload: undefined as File | undefined,
   });
 
@@ -367,41 +384,54 @@ export default function CreateTaskPage() {
       // ✅ TRANSFERRED LOCATION HANDLING - Ensure location is properly formatted
       const formattedLocation = formatLocation(form.location);
       
-      // Prepare test cases
+      // ✅ Prepare test cases from Excel data
       const testCasesForBackend: TestCase[] = task.testCases.map((testCase) => ({
         description: testCase.trim()
       }));
       
-      // ✅ TRANSFERRED LOCATION HANDLING - Prepare expected test cases from expectedResult
+      // ✅ Prepare test_data from status1 and status2
+      const testDataForBackend: TestData[] = task.testCases.map((_, index) => ({
+        description: `${task.status1[index] || ""} ${task.status2[index] || ""}`.trim() || "Test data placeholder"
+      }));
+      
+      // ✅ Prepare expected test cases from expectedResult
       const expectedTestCasesArray = form.expectedResult
         .split('\n')
         .filter(line => line.trim())
         .map(line => ({
-          description: line.trim()
+          description: line.trim(),
+          expected_text: line.trim() // Using same value for expected_text
         }));
 
-      // If no expected test cases are provided, use test cases as defaults
-      const expectedTestCasesForBackend: TestCase[] = expectedTestCasesArray.length > 0 
+      // If no expected test cases are provided, create from test cases
+      const expectedTestCasesForBackend: ExpectedTestCase[] = expectedTestCasesArray.length > 0 
         ? expectedTestCasesArray 
-        : testCasesForBackend;
+        : task.testCases.map(testCase => ({
+            description: testCase.trim(),
+            expected_text: testCase.trim()
+          }));
 
-      // Create the task data object matching the schema
+      // ✅ Create the task data object matching the updated schema
       const taskData: TaskData = {
         title: task.title,
-        location: formattedLocation, // ✅ Use formatted location
+        location: formattedLocation,
         description: form.description || task.testCases.join("\n"),
         status: "open",
-        is_completed: false,
+        status_1: task.status1.join(", ") || "Pending",
+        status_2: task.status2.join(", ") || "Pending",
         start_datetime: form.startDateTime 
           ? new Date(form.startDateTime).toISOString()
           : new Date().toISOString(),
         end_datetime: form.endDateTime 
           ? new Date(form.endDateTime).toISOString()
           : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        is_assigned: false,
         task_type: form.taskType.toLowerCase() || "functionality",
         environment: form.environment.toLowerCase() || "chrome",
+        version_build: form.versionBuild || "1.0.0",
+        requirement_id: form.requirementId || `REQ-${Date.now()}`,
+        setup_steps: form.setupSteps || "Standard setup procedure",
         test_cases: testCasesForBackend,
+        test_data: testDataForBackend,
         expected_test_cases: expectedTestCasesForBackend
       };
 
@@ -478,43 +508,56 @@ export default function CreateTaskPage() {
     // ✅ TRANSFERRED LOCATION HANDLING - Format location before sending
     const formattedLocation = formatLocation(form.location);
 
-    // Parse test cases from testScript
+    // ✅ Parse test cases from testScript
     const testCasesArray: TestCase[] = form.testScript.split("\n")
       .filter(line => line.trim() && line.includes("•"))
       .map(line => ({
         description: line.replace(/^[•\-\*]\s*/, "").trim()
       }));
 
-    // ✅ TRANSFERRED LOCATION HANDLING - Parse expected test cases from expectedResult
-    const expectedTestCasesArray: TestCase[] = form.expectedResult
+    // ✅ Create test_data array (using status from Excel or default)
+    const testDataArray: TestData[] = testCasesArray.map(() => ({
+      description: "Test data placeholder"
+    }));
+
+    // ✅ Parse expected test cases from expectedResult
+    const expectedTestCasesArray: ExpectedTestCase[] = form.expectedResult
       .split('\n')
       .filter(line => line.trim())
       .map(line => ({ 
-        description: line.trim() 
+        description: line.trim(),
+        expected_text: line.trim()
       }));
 
-    // If no expected test cases are provided, use test cases as defaults
-    const expectedTestCasesForBackend: TestCase[] = expectedTestCasesArray.length > 0 
+    // If no expected test cases are provided, create from test cases
+    const expectedTestCasesForBackend: ExpectedTestCase[] = expectedTestCasesArray.length > 0 
       ? expectedTestCasesArray 
-      : testCasesArray;
+      : testCasesArray.map(testCase => ({
+          description: testCase.description,
+          expected_text: testCase.description
+        }));
 
-    // Create the task data object matching the schema
+    // ✅ Create the task data object matching the updated schema
     const taskData: TaskData = {
       title: form.title,
-      location: formattedLocation, // ✅ Use formatted location
+      location: formattedLocation,
       description: form.description || form.testScript,
       status: "open",
-      is_completed: false,
+      status_1: "Pending",
+      status_2: "Pending",
       start_datetime: form.startDateTime 
         ? new Date(form.startDateTime).toISOString()
         : new Date().toISOString(),
       end_datetime: form.endDateTime 
         ? new Date(form.endDateTime).toISOString()
         : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      is_assigned: false,
       task_type: form.taskType.toLowerCase() || "functionality",
       environment: form.environment.toLowerCase() || "chrome",
+      version_build: form.versionBuild || "1.0.0",
+      requirement_id: form.requirementId || `REQ-${Date.now()}`,
+      setup_steps: form.setupSteps || "Standard setup procedure",
       test_cases: testCasesArray,
+      test_data: testDataArray,
       expected_test_cases: expectedTestCasesForBackend
     };
 
@@ -560,6 +603,9 @@ export default function CreateTaskPage() {
       description: "",
       testScript: "",
       expectedResult: "",
+      versionBuild: "",
+      requirementId: "",
+      setupSteps: "",
       upload: undefined,
     });
     setParsedTasks([]);
@@ -750,7 +796,6 @@ export default function CreateTaskPage() {
             </p>
           </div>
         </div>
-
         <div>
           <label className="block text-gray-700 mb-1 font-semibold text-sm">
             Description
@@ -847,24 +892,25 @@ export default function CreateTaskPage() {
             </div>
             <p className="text-xs text-gray-500 mt-3">
               All {parsedTasks.length} tasks will be created with the project settings above.
-              Status values from Excel will be saved with each test case.
+              Status values from Excel will be used for status_1 and status_2 fields.
             </p>
           </div>
         )}
 
         <div>
           <label className="block text-gray-700 mb-1 font-semibold text-sm">
-            Expected Test Cases
+            Expected Test Cases *
           </label>
           <textarea
             name="expectedResult"
             value={form.expectedResult}
             onChange={handleInput}
             className="w-full border border-gray-300 placeholder-gray-500 rounded px-3 py-2 text-sm min-h-[120px]"
-            placeholder="Enter expected test cases (one per line). Each line will be an expected test case."
+            placeholder="Enter expected test cases (one per line). Each line will be an expected test case with description and expected_text."
+            required
           />
           <p className="text-xs text-gray-500 mt-1">
-            These will be used as expected_test_cases in the backend. Each line will be converted to an expected test case.
+            These will be used as expected_test_cases in the backend. Each line will be converted to an expected test case with both description and expected_text.
           </p>
         </div>
 
@@ -913,8 +959,8 @@ export default function CreateTaskPage() {
           </button>
           <button
             type="submit"
-            disabled={isProcessing || !form.upload || !form.projectId || !form.taskType || !form.environment || !form.location}
-            className={`px-6 py-2.5 rounded-2xl ${!form.upload || !form.projectId || !form.taskType || !form.environment || !form.location ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600'} text-white w-full sm:w-auto text-sm font-medium flex items-center justify-center gap-2 ${isProcessing ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={isProcessing || !form.upload || !form.projectId || !form.taskType || !form.environment || !form.location || !form.expectedResult}
+            className={`px-6 py-2.5 rounded-2xl ${!form.upload || !form.projectId || !form.taskType || !form.environment || !form.location || !form.expectedResult ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600'} text-white w-full sm:w-auto text-sm font-medium flex items-center justify-center gap-2 ${isProcessing ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isProcessing ? (
               <>

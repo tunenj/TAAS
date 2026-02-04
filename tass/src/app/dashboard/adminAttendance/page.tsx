@@ -36,12 +36,36 @@ interface AttendanceSummaryResponse {
   };
 }
 
-interface CheckInOutResponse {
+interface AttendanceStatisticsResponse {
   success: boolean;
   message: string;
   data: {
-    detail: string;
-    attendance: AttendanceRecord;
+    week_days: number;
+    week_percent: number;
+    month_days: number;
+    month_percent: number;
+    year_days: number;
+    year_percent: number;
+  };
+}
+
+interface CheckInResponse {
+  success: boolean;
+  message: string;
+  data: {
+    session_id: number;
+    check_in_datetime: string;
+  };
+}
+
+interface CheckOutResponse {
+  success: boolean;
+  message: string;
+  data: {
+    session_id: number;
+    check_in_datetime: string;
+    check_out_datetime: string;
+    duration: string;
   };
 }
 
@@ -58,7 +82,7 @@ interface UserProfileResponse {
     employee_id?: string;
     role_name?: string;
     department?: string;
-    [key: string]: any; // For any additional fields
+    [key: string]: any;
   };
 }
 
@@ -75,7 +99,6 @@ interface UserProfile {
 
 type AttendanceStatus = 'checked-in' | 'checked-out' | 'not-checked-in' | null;
 
-// Helper function to calculate total hours from duration string
 const calculateTotalHours = (duration: string): string => {
   if (!duration) return '00:00 Hrs';
 
@@ -91,7 +114,6 @@ const calculateTotalHours = (duration: string): string => {
   }
 };
 
-// Helper function to get day name from date
 const getDayName = (date: string): string => {
   const day = dayjs(date).day();
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -114,12 +136,12 @@ export default function EmployeeDashboard() {
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceRecord[]>([]);
   const [attendanceCalendar, setAttendanceCalendar] = useState<AttendanceData[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [attendanceStats, setAttendanceStats] = useState<AttendanceStatisticsResponse['data'] | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
-  // Get user's first name from useAuth as fallback
   const userName = userProfile?.firstName || user?.first_name || 'User';
   const userEmail = userProfile?.email || user?.email || 'user@example.com';
 
-  // Initialize from localStorage on mount
   useEffect(() => {
     const savedStatus = localStorage.getItem('attendanceStatus') as AttendanceStatus;
     const savedCheckIn = localStorage.getItem('checkInTime');
@@ -132,7 +154,6 @@ export default function EmployeeDashboard() {
     }
   }, []);
 
-  // Real-time clock
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
@@ -148,7 +169,6 @@ export default function EmployeeDashboard() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Fetch user profile from /profile/me/
   const fetchUserProfile = async () => {
     if (!accessToken) return;
 
@@ -169,7 +189,6 @@ export default function EmployeeDashboard() {
       const data: UserProfileResponse = await res.json();
 
       if (data.success && data.data) {
-        // Transform API response to our UserProfile interface
         const profileData: UserProfile = {
           id: data.data.id || 'Not assigned',
           firstName: data.data.first_name || '',
@@ -182,11 +201,6 @@ export default function EmployeeDashboard() {
         };
 
         setUserProfile(profileData);
-
-        // If user doesn't have a position from API, use "Supervisor" as default
-        if (!data.data.position) {
-          // We can set a default here if needed
-        }
       }
     } catch (err) {
       console.error('Error fetching user profile:', err);
@@ -195,14 +209,42 @@ export default function EmployeeDashboard() {
     }
   };
 
-  // Fetch attendance summary
+  const fetchAttendanceStatistics = async () => {
+    if (!accessToken) return;
+
+    try {
+      setIsLoadingStats(true);
+      const res = await fetch(`${BASE_URL}/attendance/statistics/`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data: AttendanceStatisticsResponse = await res.json();
+
+      if (data.success && data.data) {
+        setAttendanceStats(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching attendance statistics:', err);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
   const fetchAttendanceSummary = async () => {
     if (!accessToken) return;
 
     try {
       setIsLoadingAttendance(true);
 
-      const res = await fetch(`${BASE_URL}/profile/me/attendance/`, {
+      const res = await fetch(`${BASE_URL}/attendance/statistics/`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -210,9 +252,7 @@ export default function EmployeeDashboard() {
         },
       });
 
-      // ✅ Handle "no attendance yet"
       if (res.status === 400) {
-        // No attendance yet → show week as Absent/Weekend
         const emptyAttendance: AttendanceRecord[] = [];
 
         setAttendanceSummary(emptyAttendance);
@@ -228,7 +268,6 @@ export default function EmployeeDashboard() {
 
         return;
       }
-
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -274,13 +313,10 @@ export default function EmployeeDashboard() {
     }
   };
 
-
-  // Generate calendar data from attendance records
   const generateAttendanceCalendar = (attendance: AttendanceRecord[]): AttendanceData[] => {
     const calendarData: AttendanceData[] = [];
     const today = dayjs();
 
-    // Get current week dates (last 7 days including today)
     for (let i = 6; i >= 0; i--) {
       const date = today.subtract(i, 'day');
       const dateStr = date.format('YYYY-MM-DD');
@@ -289,10 +325,8 @@ export default function EmployeeDashboard() {
       const month = date.month();
       const year = date.year();
 
-      // Find attendance for this date
       const dayAttendance = attendance.find(record => record.created_at === dateStr);
 
-      // Check if it's weekend
       const dayOfWeek = date.day();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
@@ -307,7 +341,6 @@ export default function EmployeeDashboard() {
           totalHours: ''
         });
       } else if (dayAttendance) {
-        // Calculate total hours for the day
         const totalHours = calculateTotalHours(dayAttendance.duration || '');
         calendarData.push({
           day: dayName,
@@ -334,7 +367,6 @@ export default function EmployeeDashboard() {
     return calendarData;
   };
 
-  // Handle Check-In
   const handleCheckIn = async () => {
     if (!accessToken) {
       alert('Please login to check in');
@@ -343,7 +375,7 @@ export default function EmployeeDashboard() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${BASE_URL}/profile/me/attendance/checkin/`, {
+      const res = await fetch(`${BASE_URL}/attendance/check-in/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -355,25 +387,25 @@ export default function EmployeeDashboard() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data: CheckInOutResponse = await res.json();
+      const data: CheckInResponse = await res.json();
 
       if (data.success) {
+        const checkInDateTime = data.data.check_in_datetime;
+        
         setAttendanceStatus('checked-in');
-        setCheckInTime(data.data.attendance.check_in_time);
+        setCheckInTime(checkInDateTime);
         setCheckOutTime(null);
 
-        // Save to localStorage
         localStorage.setItem('attendanceStatus', 'checked-in');
-        localStorage.setItem('checkInTime', data.data.attendance.check_in_time || '');
+        localStorage.setItem('checkInTime', checkInDateTime);
         localStorage.removeItem('checkOutTime');
 
-        // Refresh attendance summary
         await fetchAttendanceSummary();
+        await fetchAttendanceStatistics();
 
-        // Refresh user data if needed
         if (refreshUser) refreshUser();
 
-        alert(data.data.detail);
+        alert(data.message || 'Checked in successfully');
       }
     } catch (err) {
       console.error('Check-in failed:', err);
@@ -383,7 +415,6 @@ export default function EmployeeDashboard() {
     }
   };
 
-  // Handle Check-Out
   const handleCheckOut = async () => {
     if (!accessToken) {
       alert('Please login to check out');
@@ -392,7 +423,7 @@ export default function EmployeeDashboard() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${BASE_URL}/profile/me/attendance/checkout/`, {
+      const res = await fetch(`${BASE_URL}/attendance/check-out/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -404,27 +435,27 @@ export default function EmployeeDashboard() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data: CheckInOutResponse = await res.json();
+      const data: CheckOutResponse = await res.json();
 
       if (data.success) {
+        const checkInDateTime = data.data.check_in_datetime;
+        const checkOutDateTime = data.data.check_out_datetime;
+        const duration = data.data.duration;
+        
         setAttendanceStatus('checked-out');
-        setCheckInTime(data.data.attendance.check_in_time);
-        setCheckOutTime(data.data.attendance.check_out_time);
+        setCheckInTime(checkInDateTime);
+        setCheckOutTime(checkOutDateTime);
 
-        // Save to localStorage
         localStorage.setItem('attendanceStatus', 'checked-out');
-        localStorage.setItem('checkInTime', data.data.attendance.check_in_time || '');
-        if (data.data.attendance.check_out_time) {
-          localStorage.setItem('checkOutTime', data.data.attendance.check_out_time);
-        }
+        localStorage.setItem('checkInTime', checkInDateTime);
+        localStorage.setItem('checkOutTime', checkOutDateTime);
 
-        // Refresh attendance summary
         await fetchAttendanceSummary();
+        await fetchAttendanceStatistics();
 
-        // Refresh user data if needed
         if (refreshUser) refreshUser();
 
-        alert(data.data.detail);
+        alert(data.message || 'Checked out successfully');
       }
     } catch (err) {
       console.error('Check-out failed:', err);
@@ -434,7 +465,6 @@ export default function EmployeeDashboard() {
     }
   };
 
-  // Real-time duration display
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
 
@@ -474,22 +504,20 @@ export default function EmployeeDashboard() {
     };
   }, [attendanceStatus, checkInTime, checkOutTime]);
 
-  // Fetch user profile and attendance summary on mount
   useEffect(() => {
     if (accessToken) {
       fetchUserProfile();
       fetchAttendanceSummary();
+      fetchAttendanceStatistics();
     }
   }, [accessToken]);
 
-  // Reset attendance at midnight
   useEffect(() => {
     const checkAndReset = () => {
       const now = new Date();
       const currentDate = now.getDate();
       const lastResetDate = parseInt(localStorage.getItem('lastResetDate') || '0');
 
-      // If it's a new day, reset attendance
       if (currentDate !== lastResetDate) {
         setAttendanceStatus(null);
         setCheckInTime(null);
@@ -499,21 +527,19 @@ export default function EmployeeDashboard() {
         localStorage.removeItem('checkOutTime');
         localStorage.setItem('lastResetDate', currentDate.toString());
 
-        // Refresh attendance summary
         if (accessToken) {
           fetchAttendanceSummary();
+          fetchAttendanceStatistics();
         }
       }
     };
 
     checkAndReset();
-    // Check every hour
     const intervalId = setInterval(checkAndReset, 3600000);
 
     return () => clearInterval(intervalId);
   }, [accessToken]);
 
-  // Calculate total hours for the week
   const calculateWeeklyTotal = () => {
     const presentDays = attendanceCalendar.filter(item => item.status === 'Present');
     if (presentDays.length === 0) return '00:00 Hrs';
@@ -533,9 +559,49 @@ export default function EmployeeDashboard() {
     return `${totalHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')} Hrs`;
   };
 
+  const calculateAbsentDays = (totalDays: number, presentDays: number) => {
+    return totalDays - presentDays;
+  };
+
+  const getTotalWorkingDays = (period: 'week' | 'month' | 'year'): number => {
+    const today = dayjs();
+    let totalDays = 0;
+
+    if (period === 'week') {
+      const startOfWeek = today.startOf('week');
+      const endOfWeek = today.endOf('week');
+      let currentDay = startOfWeek;
+      while (currentDay.isBefore(endOfWeek) || currentDay.isSame(endOfWeek)) {
+        if (currentDay.day() !== 0 && currentDay.day() !== 6) {
+          totalDays++;
+        }
+        currentDay = currentDay.add(1, 'day');
+      }
+    } else if (period === 'month') {
+      const daysInMonth = today.daysInMonth();
+      for (let i = 1; i <= daysInMonth; i++) {
+        const date = today.date(i);
+        if (date.day() !== 0 && date.day() !== 6) {
+          totalDays++;
+        }
+      }
+    } else if (period === 'year') {
+      const startOfYear = today.startOf('year');
+      const endOfYear = today.endOf('year');
+      let currentDay = startOfYear;
+      while (currentDay.isBefore(endOfYear) || currentDay.isSame(endOfYear)) {
+        if (currentDay.day() !== 0 && currentDay.day() !== 6) {
+          totalDays++;
+        }
+        currentDay = currentDay.add(1, 'day');
+      }
+    }
+
+    return totalDays;
+  };
+
   return (
     <main className="min-h-screen mt-10">
-      {/* Cover Image */}
       <div className="absolute inset-0 z-10">
         <div className="relative w-full h-[279px]">
           <Image
@@ -550,7 +616,6 @@ export default function EmployeeDashboard() {
       </div>
       <div className="container mx-auto px-4 py-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 h-fit mt-6">
             <div className="flex flex-col items-center">
               <div className="relative -mt-14 mb-4">
@@ -562,7 +627,6 @@ export default function EmployeeDashboard() {
                   className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
                 />
               </div>
-              {/* Use profile data from API */}
               <h3 className="text-lg font-semibold text-gray-800 mb-1">
                 {userName}
               </h3>
@@ -570,7 +634,6 @@ export default function EmployeeDashboard() {
                 {userProfile?.position || 'Supervisor'}
               </p>
 
-              {/* Status Display */}
               <div className="mb-2">
                 {attendanceStatus === 'checked-in' ? (
                   <span className="text-[#52F44A] text-[16px] font-medium">Checked In</span>
@@ -581,7 +644,6 @@ export default function EmployeeDashboard() {
                 )}
               </div>
 
-              {/* Current Time */}
               <div className="flex items-center gap-2 mb-4">
                 {currentTime.split(':').map((unit, idx) => (
                   <div key={idx} className="text-xl font-bold text-gray-800 px-1.5 py-0.5 bg-gray-200 rounded-lg">
@@ -607,7 +669,6 @@ export default function EmployeeDashboard() {
                 )}
               </button>
 
-              {/* Check-in/out times */}
               {checkInTime && (
                 <div className="text-xs text-gray-500 text-center mt-2">
                   <p>Check-in: {dayjs(checkInTime).format('h:mm A')}</p>
@@ -617,11 +678,111 @@ export default function EmployeeDashboard() {
                 </div>
               )}
             </div>
+
+            {/* Attendance Statistics */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                Attendance Statistics
+              </h3>
+              
+              {isLoadingStats ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-10 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : attendanceStats ? (
+                <div className="space-y-4">
+                  {/* Weekly Stats */}
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700">This Week</span>
+                      <span className="text-sm font-semibold text-blue-600">
+                        {attendanceStats.week_percent}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <div>
+                        <span className="text-green-600 font-medium">✓ {attendanceStats.week_days} days</span>
+                      </div>
+                      <div>
+                        <span className="text-red-600 font-medium">
+                          ✗ {calculateAbsentDays(getTotalWorkingDays('week'), attendanceStats.week_days)} days
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                      <div 
+                        className="bg-blue-600 h-1.5 rounded-full" 
+                        style={{ width: `${Math.min(attendanceStats.week_percent, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Monthly Stats */}
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700">This Month</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {attendanceStats.month_percent}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <div>
+                        <span className="text-green-600 font-medium">✓ {attendanceStats.month_days} days</span>
+                      </div>
+                      <div>
+                        <span className="text-red-600 font-medium">
+                          ✗ {calculateAbsentDays(getTotalWorkingDays('month'), attendanceStats.month_days)} days
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                      <div 
+                        className="bg-green-600 h-1.5 rounded-full" 
+                        style={{ width: `${Math.min(attendanceStats.month_percent, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Yearly Stats */}
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700">This Year</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        {attendanceStats.year_percent}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <div>
+                        <span className="text-green-600 font-medium">✓ {attendanceStats.year_days} days</span>
+                      </div>
+                      <div>
+                        <span className="text-red-600 font-medium">
+                          ✗ {calculateAbsentDays(getTotalWorkingDays('year'), attendanceStats.year_days)} days
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                      <div 
+                        className="bg-purple-600 h-1.5 rounded-full" 
+                        style={{ width: `${Math.min(attendanceStats.year_percent, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  No statistics available
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Tabs */}
             <div className="bg-white rounded-xl shadow-lg mt-20">
               <div className="border-b border-gray-200">
                 <nav className="flex">
@@ -646,7 +807,6 @@ export default function EmployeeDashboard() {
                 </nav>
               </div>
 
-              {/* Tab Content */}
               <div className="p-6">
                 {activeTab === 'Activities' && (
                   <>
@@ -656,7 +816,6 @@ export default function EmployeeDashboard() {
                           {dayjs().hour() < 12 ? 'Good Morning' :
                             dayjs().hour() < 18 ? 'Good Afternoon' : 'Good Evening'}
                         </h2>
-                        {/* Use profile data from API */}
                         <span className="text-gray-500">- {userName}</span>
                       </div>
                       <Image
@@ -668,7 +827,6 @@ export default function EmployeeDashboard() {
                       />
                     </div>
 
-                    {/* Work Schedule */}
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
@@ -688,10 +846,8 @@ export default function EmployeeDashboard() {
                       </div>
                     </div>
 
-                    {/* Attendance Calendar */}
                     <div className="grid grid-cols-7 gap-2 mb-4">
                       {isLoadingAttendance ? (
-                        // Loading skeleton
                         Array(7).fill(0).map((_, index) => (
                           <div key={index} className="text-center">
                             <div className="text-xs text-gray-500 mb-1 h-4 bg-gray-200 animate-pulse rounded"></div>
@@ -721,7 +877,6 @@ export default function EmployeeDashboard() {
                       )}
                     </div>
 
-                    {/* Weekly Summary */}
                     {!isLoadingAttendance && attendanceCalendar.length > 0 && (
                       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         <div className="flex justify-between items-center">

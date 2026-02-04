@@ -59,7 +59,7 @@ export default function LocationPermissionCard() {
 
                     if (!token) throw new Error("Authentication token missing");
 
-                    const res = await fetch(`${BASE_URL}/profile/me/location/`, {
+                    const res = await fetch(`${BASE_URL}/location/current/`, {
                         method: "PUT",
                         headers: {
                             "Content-Type": "application/json",

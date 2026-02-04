@@ -105,7 +105,7 @@ export function useAuth(requireAuth: boolean = true) {
 
   const fetchUserLocation = async (token: string) => {
     try {
-      const res = await fetch(`${BASE_URL}/profile/me/location/`, {
+      const res = await fetch(`${BASE_URL}/location/current/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return null;
@@ -257,9 +257,7 @@ export function useAuth(requireAuth: boolean = true) {
   const hasAnyRole = (checkRoles: string[]): boolean =>
     !!role && checkRoles.some((r) => r.toUpperCase() === role.toUpperCase());
 
-  /* =========================
-     Init
-  ========================== */
+ 
 
   useEffect(() => {
     const initAuth = async () => {

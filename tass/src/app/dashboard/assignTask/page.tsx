@@ -78,7 +78,7 @@ export default function AssignTaskPage() {
         const allTasks: Task[] = [];
 
         for (const project of projectList) {
-          const taskRes = await fetch(`${BASE_URL}/projects/${project.project_id}/tasks/`, {
+          const taskRes = await fetch(`${BASE_URL}/tasks/${project.project_id}/all/`, {
             headers: { Authorization: `Bearer ${accessToken}` },
           });
           if (!taskRes.ok) continue;
@@ -239,7 +239,7 @@ export default function AssignTaskPage() {
         const normalizedTaskLocation = normalizeLocation(task.location);
 
         const response = await fetch(
-          `${BASE_URL}/projects/tasks/${task.taskId}/assign/`,
+          `${BASE_URL}/tasks/${task.taskId}/assign/`,
           {
             method: "POST",
             headers: {
@@ -250,6 +250,7 @@ export default function AssignTaskPage() {
           }
         );
 
+        console.log("userIds:", userIds);
         if (response.ok) {
           successfulTasks.push(taskLocalId);
         } else {
